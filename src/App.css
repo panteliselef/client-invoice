@@ -1,33 +1,110 @@
-.App {
-  text-align: center;
+body {
+  font-family: 'Roboto', sans-serif;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+form.invoice-form .item-description-table .entry,
+form.invoice-form .item-description-table .entry-title {
+  display: grid;
+  grid-template-columns: 20px auto 10%;
+  grid-column-gap: .5em;
+  padding: 1em 1em;
+  margin: 0em 1em;
+  overflow: hidden;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  border-top: 1px solid #C6AFFF;
+  min-height: 20px;
+  background-clip: border-box;
 }
 
-.App-link {
-  color: #61dafb;
+form.invoice-form * {
+  color: #192466;
+}
+form.invoice-form .item-description-table .entry:nth-child(2) { 
+ border-top: 1px solid transparent;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+form.invoice-form .item-description-table {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  display: grid;
+}
+
+form.invoice-form .client-info-inputs {
+  /* box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28); */
+  padding: 1em;
+}
+
+form.invoice-form .item-description-table .entry-title {
+  border: none;
+}
+form.invoice-form .entry-title div {
+  color: #8C99FF;
+  font-weight: 600;
+}
+
+form.invoice-form .client-info-inputs .inputs {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-column-gap: 1em;
+}
+
+form.invoice-form .client-info-inputs .inputs input {
+  border-bottom: 1px solid #B596FF;
+  font-weight: 500;
+  padding: .5em 0em;
+  text-indent: .5em;
+  outline: none;
+}
+
+form.invoice-form .button-area {
+  display: flex;
+  justify-content: space-between;
+}
+
+form.invoice-form .client-total-bill {
+  display: flex;
+  width: calc(100% - 2em);
+  justify-content: flex-end;
+  align-items: center;
+  margin: 1em;
+  font-size: 2em;
+}
+form.invoice-form .button {
+  margin: 1em;
+  text-transform: capitalize;
+  background-color: #192466;
+  box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
+  border-radius: 25px;
+  display: inline-block;
+  color: #fff;
+  padding: 1em;
+}
+
+form.invoice-form {
+	max-width: 800px;
+	margin: auto;
+	padding: 1em;
+}
+
+form.invoice-form input {
+	width: 100%;
+	appearance: none;
+	font-size: 1rem;
+	border: none;
+}
+
+
+form.invoice-form .item-description-table .entry input {
+  outline: none;
+  padding: .7em 0em;
+  text-indent: 1em;
+  border-radius: 20px;
+  transition: .3s all ease;
+  font-weight: 500;
+}
+
+form.invoice-form .item-description-table .entry input:hover,
+form.invoice-form .item-description-table .entry input:focus {
+  background-color: rgba(198, 175, 255, 0.2);
 }
