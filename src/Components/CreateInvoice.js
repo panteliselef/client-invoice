@@ -20,6 +20,12 @@ const Dashboard = () => {
 		}
 	]);
 
+	const [readyToUpload, setReadyToUpload] = useState(false);
+	const [uploadedPercentage,setUploadedPercentage] = useState(0);
+	const [uploadCompleted,setUploadCompleted] = useState(false);
+	
+
+
 	const updateItemDescription = (item, value) => {
 		let n = items.map((it) => {
 			if (it.id === item.id) it.description = value;
@@ -41,6 +47,28 @@ const Dashboard = () => {
 		}, 0);
 	};
 
+	const uploadPDF = (file) => {
+
+		setReadyToUpload(true);
+		let storageRef = firebase.storage().ref('test/one');
+		let task = storageRef.put(file);
+		task.on('state_changed', function progress(snapshot){
+			let percentage = snapshot.bytesTransferred/snapshot.totalBytes *100;
+			console.log(percentage);
+			setUploadedPercentage(percentage);
+		},
+			function error(err) {
+				console.error(err);
+			},
+			function completed() {
+				document.getElementById('progress-bar-colored').style.backgroundColor = "#192466"
+				setUploadCompleted(true);
+			}
+		)
+
+
+	}
+
 	const addItemtoList = () => {
 		setItems([
 			...items,
@@ -56,7 +84,7 @@ const Dashboard = () => {
 		let doc = new jsPDF({
 			orientation: 'p',
 			unit: 'px',
-			format: 'a4'
+			foqrmat: 'a4'
 		});
 
 		doc.addImage(document.getElementById('img'), 'PNG', doc.internal.pageSize.getWidth() / 2 - 50, 20, 100, 20,"wf","FAST");
@@ -67,9 +95,9 @@ const Dashboard = () => {
     doc.text(doc.internal.pageSize.getWidth() / 2 - 35, 110, 'BILL TO:');
     
 		// console.log(doc.output('datauristring', 'filename.pdf'));
-
-		let file = doc.save('one.pdf');
-		// let file = doc.output('blob');
+		// let file = doc.save('one.pdf');
+		let file = doc.output('blob');
+		uploadPDF(file);
 		// var data = new FormData();
 		//     data.append("data" , file);
 		// console.log(file)
@@ -112,8 +140,20 @@ const Dashboard = () => {
 					+ add Item
 				</div>
 
-				<div onClick={() => createPDF()} className="button">
-					Create PDF
+
+				<div style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'flex-end'}}>
+
+				{(uploadCompleted &&
+					<div>Completed</div>
+				)}
+				{(readyToUpload &&  
+					<div className="progress-bar">
+						<div style={{width:uploadedPercentage}} id="progress-bar-colored"></div>
+					</div>
+				)}
+					<div onClick={() => createPDF()} className="button">
+						Create PDF
+					</div>
 				</div>
 			</div>
 			<div className="item-description-table">

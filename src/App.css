@@ -33,6 +33,21 @@ form.invoice-form .client-info-inputs {
   /* box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28); */
   padding: 1em;
 }
+.progress-bar {
+  width: 100%;
+  max-width: 5em;
+  background-color: rgb(230, 230, 230);
+  height: .3em;
+  border-radius: 100px;
+  overflow: hidden;
+  transition: all .3s ease-in-out;
+}
+.progress-bar div {
+  transition: all .3s ease-in-out;
+  width: 0%;
+  height: 100%;
+  background-color: #B596FF;
+}
 
 form.invoice-form .item-description-table .entry-title {
   border: none;
@@ -59,6 +74,7 @@ form.invoice-form .client-info-inputs .inputs input {
 
 form.invoice-form .button-area {
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -79,6 +95,9 @@ form.invoice-form .button {
   display: inline-block;
   color: #fff;
   padding: 1em;
+  min-width: 6em;
+  text-align: center;
+  cursor: pointer;
 }
 
 form.invoice-form {

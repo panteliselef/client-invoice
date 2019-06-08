@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "canvg": "^2.0.0",
     "firebase": "^6.1.1",
     "jspdf": "^1.5.3",
     "react": "^16.8.6",

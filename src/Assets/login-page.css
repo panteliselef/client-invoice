@@ -1,0 +1,68 @@
+div.login-page {
+	width: 100vw;
+	height: calc(100vh - 2em);
+	position: relative;
+	display: block;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: bottom center;
+	background-image: url('./bg.svg');
+	min-height: 800px;
+	padding: 1em 0;
+}
+
+form.sign-in {
+	font-size: 1rem;
+	color: #fff;
+	width: 100%;
+	max-width: 500px;
+	margin: auto;
+	margin-top: 10em;
+}
+
+form.sign-in .welcome-msg {
+	font-size: 2em;
+  font-weight: 900;
+  margin: 1em 0;
+}
+
+form.sign-in label {
+	margin: .5em 0;
+	text-transform: capitalize;
+  display: block;
+  color: #87AAD8;
+}
+form.sign-in input {
+  margin-bottom: 1.5em;
+  box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
+	font-size: 1em;
+	display: block;
+  width: 100%;
+  color: #fff;
+	outline: none;
+	padding: 1em 0em;
+	text-indent: 1em;
+	border-radius: 100px;
+	transition: .3s all ease;
+	font-weight: 500;
+	border: none;
+  /* background-color: rgba(198, 175, 255, 0.2); */
+  background-color: #4f5682;
+}
+
+
+form.sign-in button.submit {
+  appearance: none;
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 1em;
+  padding: 1em;
+  border-radius: 100px;
+  background: #8C99FF;
+  color: #fff;
+  text-transform: capitalize;
+  font-weight: bold;
+  margin: 1em 0;
+  cursor: pointer;
+}
