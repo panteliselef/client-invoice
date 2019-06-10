@@ -17,6 +17,7 @@ const withAuthProtection = redirectPath => WrappedComponent => {
       // }
     }
     componentDidUpdate(){
+      
             console.log(redirectPath);
       const { history } = this.props;
       console.log(firebase.auth().currentUser);

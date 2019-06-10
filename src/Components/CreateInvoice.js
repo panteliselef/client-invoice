@@ -1,6 +1,7 @@
 // https://coolors.co/8c99ff-c6afff-b596ff-192466-fff4fa
 
 //TODO: FIX duplicate on realtime db
+//TODO: Check for name in test.pdf
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import firebase, { database } from 'firebase/app';
@@ -25,6 +26,7 @@ const Dashboard = () => {
 		}
 	]);
 
+	const [nameOfPDF, setNameOfPDF] = useState("test.pdf");
 	const [ readyToUpload, setReadyToUpload ] = useState(false);
 	const [ uploadedPercentage, setUploadedPercentage ] = useState(0);
 	const [ uploadCompleted, setUploadCompleted ] = useState(false);
@@ -59,7 +61,7 @@ const Dashboard = () => {
 
 	const uploadPDFToStorage = (file) => {
 		let user = firebase.auth().currentUser;
-		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/one`);
+		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${nameOfPDF}`);
 		console.log(firebase.auth().currentUser);
 
 		let metadata = {
@@ -68,9 +70,9 @@ const Dashboard = () => {
 			contentType: 'application/pdf',
 			customMetadata: {
 				timestamp: Date.now()
-			},
+			}
 		};
-		let task = storageRef.put(file,metadata);
+		let task = storageRef.put(file, metadata);
 		task.on(
 			'state_changed',
 			function progress(snapshot) {
@@ -151,17 +153,6 @@ const Dashboard = () => {
 		let file = doc.output('blob');
 		console.log(file);
 		uploadPDF(file);
-		// var data = new FormData();
-		//     data.append("data" , file);
-		// console.log(file)
-
-		// let storageRef = firebase.storage().ref('test/one');
-		// let task = storageRef.put(file);
-
-		// task.on('state_changed', function progress(snapshot){
-		//   let percentage = snapshot.bytesTransferred/snapshot.totalBytes *100;
-		//   console.log(percentage);
-		// })
 	};
 
 	return (
@@ -205,6 +196,16 @@ const Dashboard = () => {
 					</div>
 				</div>
 			</div>
+			<div className="input-with-label">
+						<label>
+							Name Of File
+						</label>
+				<input
+					onChange={(e) => setNameOfPDF(e.target.value )}
+					value={nameOfPDF}
+				/>
+			</div>
+
 			<div className="item-description-table">
 				<div className="entry-title">
 					<div>#</div>

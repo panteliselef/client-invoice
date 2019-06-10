@@ -17,3 +17,22 @@ div.dashboard{
 	max-width: 500px;
 	margin: auto;
 }
+
+div.dashboard .files-table {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  display: grid;
+}
+
+div.dashboard .files-table .entry{
+  display: grid;
+  grid-template-columns: 20% auto auto;
+  grid-column-gap: .5em;
+  padding: 1em 1em;
+  margin: 0em 1em;
+  overflow: hidden;
+  align-items: center;
+  border-top: 1px solid #C6AFFF;
+  min-height: 20px;
+  background-clip: border-box;
+}

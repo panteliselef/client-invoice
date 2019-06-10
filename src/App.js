@@ -10,10 +10,12 @@ import SignupPage from './Components/SignupPage';
 import Dashboard from './Components/Dashboard';
 import CreateInvoice from './Components/CreateInvoice';
 import { initState, mainReducer } from './Reducers/mainReducer';
-import PrivateRoute from './Components/PrivateRoute';
 
 import withAuthProtection from './HOC/withAuthProtection';
+import afterAuthCompleted from './HOC/afterAuthCompleted';
 const ProtectedDashboard = withAuthProtection('/login')(Dashboard)
+const ProtectedEditor = withAuthProtection('/login')(CreateInvoice)
+const LimitedLoginPage = afterAuthCompleted('/dashboard')(LoginPage)
 
 firebase.initializeApp(firebaseConfig);
 
@@ -21,7 +23,6 @@ const App = (props) => {
 	const database = firebase.database();
 	const test = database.ref('/');
 	const [ state, dispatch ] = useReducer(mainReducer, initState);
-
 
 	// componentDidMount() {
 	//   console.log(firebase);
@@ -35,9 +36,12 @@ const App = (props) => {
 			console.log(user);
 			if (user) {
 				console.log('Signed In');
+				
+				dispatch({ type: 'UPDATED_USER_INFO', payload: user });
 				dispatch({ type: 'UPDATED_USER_SIGNED_IN', payload: true });
 			} else {
 				console.log('no');
+				dispatch({ type: 'UPDATED_USER_INFO', payload: {} });
 				dispatch({ type: 'UPDATED_USER_SIGNED_IN', payload: false });
 			}
 		});
@@ -47,13 +51,22 @@ const App = (props) => {
 		<BrowserRouter>
 			{/* {state.isUserSignedIn ? <Redirect to="/dashboard" /> : <Redirect to="/" />} */}
 			<Switch>
-				<Route exact path="/" component={LoginPage} />
-				<Route exact path="/login" component={LoginPage} />
+			<Route exact path="/login" render={(props)=>(
+          <LimitedLoginPage {...props}/>
+        )}/>
+				<Route exact path="/" render={(props)=>(
+          <LimitedLoginPage {...props}/>
+        )}/>
+				{/* <Route exact path="/" component={LoginPage} /> */}
+				{/* <Route exact path="/login" component={LoginPage} /> */}
 				<Route exact path="/sign-up" component={SignupPage} />
 				{/* <Route exact path="/dashboard" component={Dashboard} /> */}
-				<Route exact path="/create-invoice" component={CreateInvoice} />
-				<Route state={state} exact path="/dashboard" render={props=>(
-          <ProtectedDashboard {...props}/>
+				{/* <Route exact path="/create-invoice" component={CreateInvoice} /> */}
+				<Route data={state} exact path="/dashboard" render={(props)=>(
+          <ProtectedDashboard data={state} {...props}/>
+        )}/>
+				<Route exact path="/create-invoice" render={(props)=>(
+          <ProtectedEditor {...props}/>
         )}/>
 			</Switch>
 		</BrowserRouter>

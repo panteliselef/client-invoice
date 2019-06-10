@@ -114,6 +114,11 @@ form.invoice-form input {
 }
 
 
+form.invoice-form .input-with-label input {
+  max-width: 10em;
+  display: block;
+}
+
 form.invoice-form .item-description-table .entry input {
   outline: none;
   padding: .7em 0em;
@@ -121,9 +126,10 @@ form.invoice-form .item-description-table .entry input {
   border-radius: 20px;
   transition: .3s all ease;
   font-weight: 500;
+  background-color: rgba(198, 175, 255, 0.3);
 }
 
 form.invoice-form .item-description-table .entry input:hover,
 form.invoice-form .item-description-table .entry input:focus {
-  background-color: rgba(198, 175, 255, 0.2);
+  background-color: rgba(198, 175, 255, 0.1);
 }
