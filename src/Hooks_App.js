@@ -11,10 +11,6 @@ import Dashboard from './Components/Dashboard';
 import CreateInvoice from './Components/CreateInvoice';
 import { initState, mainReducer } from './Reducers/mainReducer';
 import PrivateRoute from './Components/PrivateRoute';
-
-import withAuthProtection from './HOC/withAuthProtection';
-const ProtectedDashboard = withAuthProtection('/login')(Dashboard)
-
 firebase.initializeApp(firebaseConfig);
 
 const App = (props) => {
@@ -52,9 +48,7 @@ const App = (props) => {
 				<Route exact path="/sign-up" component={SignupPage} />
 				{/* <Route exact path="/dashboard" component={Dashboard} /> */}
 				<Route exact path="/create-invoice" component={CreateInvoice} />
-				<Route state={state} exact path="/dashboard" render={props=>(
-          <ProtectedDashboard {...props}/>
-        )}/>
+				<PrivateRoute state={state} exact path="/dashboard" component={Dashboard}/>
 			</Switch>
 		</BrowserRouter>
 	);

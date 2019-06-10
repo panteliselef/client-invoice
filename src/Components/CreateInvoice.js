@@ -1,11 +1,16 @@
 // https://coolors.co/8c99ff-c6afff-b596ff-192466-fff4fa
+
+//TODO: FIX duplicate on realtime db
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
-import firebase from 'firebase/app';
+import firebase, { database } from 'firebase/app';
 import 'firebase/storage';
+import 'firebase/auth';
+import 'firebase/database';
 import creativedaylogo from '../Assets/creativedaylogo.png';
 import invoice from '../Assets/invoice.png';
 const Dashboard = () => {
+	const database = firebase.database();
 	const [ clientInfo, setClientInfo ] = useState({
 		name: '',
 		address: '',
@@ -20,11 +25,9 @@ const Dashboard = () => {
 		}
 	]);
 
-	const [readyToUpload, setReadyToUpload] = useState(false);
-	const [uploadedPercentage,setUploadedPercentage] = useState(0);
-	const [uploadCompleted,setUploadCompleted] = useState(false);
-	
-
+	const [ readyToUpload, setReadyToUpload ] = useState(false);
+	const [ uploadedPercentage, setUploadedPercentage ] = useState(0);
+	const [ uploadCompleted, setUploadCompleted ] = useState(false);
 
 	const updateItemDescription = (item, value) => {
 		let n = items.map((it) => {
@@ -47,27 +50,58 @@ const Dashboard = () => {
 		}, 0);
 	};
 
-	const uploadPDF = (file) => {
+	const uploadPDFToDatabase = (metadata) => {
+		let user = firebase.auth().currentUser;
+		database.ref(`/files/${user.uid}/invoices/`).push({
+			metadata: metadata
+		});
+	};
 
-		setReadyToUpload(true);
-		let storageRef = firebase.storage().ref('test/one');
-		let task = storageRef.put(file);
-		task.on('state_changed', function progress(snapshot){
-			let percentage = snapshot.bytesTransferred/snapshot.totalBytes *100;
-			console.log(percentage);
-			setUploadedPercentage(percentage);
-		},
+	const uploadPDFToStorage = (file) => {
+		let user = firebase.auth().currentUser;
+		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/one`);
+		console.log(firebase.auth().currentUser);
+
+		let metadata = {
+			cacheControl: 'public,max-age=300',
+			contentLanguage: 'en',
+			contentType: 'application/pdf',
+			customMetadata: {
+				timestamp: Date.now()
+			},
+		};
+		let task = storageRef.put(file,metadata);
+		task.on(
+			'state_changed',
+			function progress(snapshot) {
+				let percentage = snapshot.bytesTransferred / snapshot.totalBytes * 100;
+				console.log(percentage);
+				setUploadedPercentage(percentage);
+			},
 			function error(err) {
 				console.error(err);
 			},
 			function completed() {
-				document.getElementById('progress-bar-colored').style.backgroundColor = "#192466"
+				document.getElementById('progress-bar-colored').style.backgroundColor = '#192466';
 				setUploadCompleted(true);
+				// Get metadata properties
+				storageRef
+					.getMetadata()
+					.then(function(metadata) {
+						uploadPDFToDatabase(metadata);
+					})
+					.catch(function(error) {
+						console.error(error);
+						// Uh-oh, an error occurred!
+					});
 			}
-		)
+		);
+	};
 
-
-	}
+	const uploadPDF = (file) => {
+		setReadyToUpload(true);
+		uploadPDFToStorage(file);
+	};
 
 	const addItemtoList = () => {
 		setItems([
@@ -87,16 +121,35 @@ const Dashboard = () => {
 			foqrmat: 'a4'
 		});
 
-		doc.addImage(document.getElementById('img'), 'PNG', doc.internal.pageSize.getWidth() / 2 - 50, 20, 100, 20,"wf","FAST");
+		doc.addImage(
+			document.getElementById('img'),
+			'PNG',
+			doc.internal.pageSize.getWidth() / 2 - 50,
+			20,
+			100,
+			20,
+			'wf',
+			'FAST'
+		);
 
-		doc.addImage(document.getElementById('img-invoice'), 'PNG', 0, 80, doc.internal.pageSize.getWidth(), 100,"dwa","FAST");
+		doc.addImage(
+			document.getElementById('img-invoice'),
+			'PNG',
+			0,
+			80,
+			doc.internal.pageSize.getWidth(),
+			100,
+			'dwa',
+			'FAST'
+		);
 
 		doc.setFontSize(25);
-    doc.text(doc.internal.pageSize.getWidth() / 2 - 35, 110, 'BILL TO:');
-    
+		doc.text(doc.internal.pageSize.getWidth() / 2 - 35, 110, 'BILL TO:');
+
 		// console.log(doc.output('datauristring', 'filename.pdf'));
 		// let file = doc.save('one.pdf');
 		let file = doc.output('blob');
+		console.log(file);
 		uploadPDF(file);
 		// var data = new FormData();
 		//     data.append("data" , file);
@@ -140,17 +193,13 @@ const Dashboard = () => {
 					+ add Item
 				</div>
 
-
-				<div style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'flex-end'}}>
-
-				{(uploadCompleted &&
-					<div>Completed</div>
-				)}
-				{(readyToUpload &&  
-					<div className="progress-bar">
-						<div style={{width:uploadedPercentage}} id="progress-bar-colored"></div>
-					</div>
-				)}
+				<div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+					{uploadCompleted && <div>Completed</div>}
+					{readyToUpload && (
+						<div className="progress-bar">
+							<div style={{ width: uploadedPercentage }} id="progress-bar-colored" />
+						</div>
+					)}
 					<div onClick={() => createPDF()} className="button">
 						Create PDF
 					</div>

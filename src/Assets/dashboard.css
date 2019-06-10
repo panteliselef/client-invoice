@@ -1,0 +1,19 @@
+div.dashboard-container {
+	width: 100vw;
+	height: calc(100vh - 2em);
+	position: relative;
+	display: block;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: bottom center;
+	background-image: url('./bg-white.svg');
+	min-height: 800px;
+	padding: 1em 0;
+}
+
+div.dashboard{
+	font-size: 1rem;
+	width: 100%;
+	max-width: 500px;
+	margin: auto;
+}

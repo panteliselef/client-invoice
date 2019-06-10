@@ -27,7 +27,8 @@ const LoginPage = (props) => {
 					.signInWithEmailAndPassword(userEmail, userPassword)
 					.then((success) => {
 						console.log(success);
-						props.history.push('/dashboard');
+						setTimeout(()=>{
+							props.history.push('/dashboard')},100);
 					})
 					.catch((err) => {
 						console.error(err);
