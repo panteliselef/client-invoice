@@ -4,13 +4,13 @@ import 'firebase/database';
 import 'firebase/auth';
 
 import '../Assets/login-page.css';
-import { withRouter } from 'react-router-dom';
+import { withRouter, NavLink } from 'react-router-dom';
 
 const SignupPage = (props) => {
 	const [ userEmail, setUserEmail ] = useState('panteliselef@outlook.com');
-	const [ userPassword, setUserPassword ] = useState('123456');
+	const [ userPassword, setUserPassword ] = useState(''); //123456
 
-	const [ isSignUpAvailable, setSignUpAvailable ] = useState(true);
+	const [ isSignUpAvailable, setSignUpAvailable ] = useState(false);
 
 	const [ secretPasscode, setSecretPasscode ] = useState('');
 
@@ -22,12 +22,15 @@ const SignupPage = (props) => {
 		return re.test(email);
 	};
 
-	useEffect(() => {
-		passcode.once('value', (snapshot) => {
-			setSecretPasscode(snapshot.val().secretPasscode);
-			console.log(snapshot.val());
-		});
-	}, [passcode]);
+	useEffect(
+		() => {
+			passcode.once('value', (snapshot) => {
+				setSecretPasscode(snapshot.val().secretPasscode);
+				console.log(snapshot.val());
+			});
+		},
+		[ passcode ]
+	);
 
 	const checkSecretPassCode = (e) => {
 		e.preventDefault();
@@ -101,6 +104,11 @@ const SignupPage = (props) => {
 					<button className="submit" onClick={(e) => onSignUp(e)}>
 						Sign Up
 					</button>
+					<div className="links">
+						<NavLink className="link" to="/login">
+							Already a member ?
+						</NavLink>
+					</div>
 				</form>
 			) : (
 				<form className="sign-in">

@@ -20,6 +20,7 @@ div.dashboard{
 }
 
 div.dashboard .files-table {
+	background-color: #fff;
 	margin-top: 2em;
   border-radius: 20px;
 	display: grid;

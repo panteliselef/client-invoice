@@ -66,3 +66,21 @@ form.sign-in button.submit {
   margin: 1em 0;
   cursor: pointer;
 }
+
+form.sign-in div.links {
+	display: flex;
+	justify-content: center;
+}
+form.sign-in div.links .link {
+	color: #192466;
+	padding: 1em;
+	background: #fff;
+	text-decoration: none;
+	border-radius: 100px;
+	font-size: .8rem;
+	min-width: 10rem;
+	text-align: center;
+	display: inline-block;
+	margin: 1rem .5rem;
+	text-transform: capitalize;
+}

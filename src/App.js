@@ -16,12 +16,24 @@ import afterAuthCompleted from './HOC/afterAuthCompleted';
 const ProtectedDashboard = withAuthProtection('/login')(Dashboard)
 const ProtectedEditor = withAuthProtection('/login')(CreateInvoice)
 const LimitedLoginPage = afterAuthCompleted('/dashboard')(LoginPage)
-
+const LimitedSignUpPage = afterAuthCompleted('/dashboard')(SignupPage)
 firebase.initializeApp(firebaseConfig);
 
 const App = (props) => {
 	const database = firebase.database();
 	const [ state, dispatch ] = useReducer(mainReducer, initState);
+
+	function authUser() {
+   return new Promise(function (resolve, reject) {
+      firebase.auth().onAuthStateChanged(function(user) {
+         if (user) {
+            resolve(user);
+         } else {
+            reject('User not logged in');
+         }             
+      });
+   });
+}
 
 	useEffect(() => {
 		firebase.auth().onAuthStateChanged(function(user) {
@@ -37,8 +49,7 @@ const App = (props) => {
 				dispatch({ type: 'UPDATED_USER_SIGNED_IN', payload: false });
 			}
 		});
-	}, []);
-
+	}, []);	
 	return (
 		<BrowserRouter>
 			{/* {state.isUserSignedIn ? <Redirect to="/dashboard" /> : <Redirect to="/" />} */}
@@ -49,9 +60,12 @@ const App = (props) => {
 				<Route exact path="/" render={(props)=>(
           <LimitedLoginPage {...props}/>
         )}/>
+				<Route exact path="/sign-up" render={(props)=>(
+          <LimitedSignUpPage {...props}/>
+        )}/>
 				{/* <Route exact path="/" component={LoginPage} /> */}
 				{/* <Route exact path="/login" component={LoginPage} /> */}
-				<Route exact path="/sign-up" component={SignupPage} />
+				{/* <Route exact path="/sign-up" component={SignupPage} /> */}
 				{/* <Route exact path="/dashboard" component={Dashboard} /> */}
 				{/* <Route exact path="/create-invoice" component={CreateInvoice} /> */}
 				<Route data={state} exact path="/dashboard" render={(props)=>(

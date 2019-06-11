@@ -1,22 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink,withRouter } from 'react-router-dom';
 import firebase, { storage } from 'firebase/app';
+import Header from '../Components/Header';
+import LoadingAnimation from '../Components/LoadingAnimation';
 import 'firebase/auth';
 import 'firebase/database';
 import 'firebase/storage';
 import '../Assets/dashboard.css';
 const Dashboard = (props) => {
-	const logout = () => {
-		firebase
-			.auth()
-			.signOut()
-			.then(function() {
-				// Sign-out successful.
-			})
-			.catch(function(error) {
-				// An error happened
-			});
-	};
 
 	const [ files, setFiles ] = useState([]);
 	const database = firebase.database();
@@ -24,8 +15,11 @@ const Dashboard = (props) => {
 	console.log('Props', props);
 	const firebaseFiles = database.ref(`/files/${props.data.signedInUserInfo.uid}/invoices`);
 
+	const [isFetchingData,setIsFetchingData] = useState(false);
+
 	useEffect(
 		() => {
+			setIsFetchingData(true);
 			firebaseFiles.on('value', (snapshot) => {
 				const fileObj = snapshot.val();
 				if (fileObj) {
@@ -34,10 +28,11 @@ const Dashboard = (props) => {
 						id: key
 					}));
 					console.log(fileList);
-
 					setFiles(fileList);
+					setIsFetchingData(false);
 				} else {
 					setFiles([]);
+					setIsFetchingData(false);
 				}
 			});
 		},
@@ -83,18 +78,21 @@ const Dashboard = (props) => {
 	};
 	return (
 		<div className="dashboard-container">
+			<Header/>
 			<div className="dashboard">
 				<h1>Dashboard</h1>
 				<button className="btn-rounded">
 					<NavLink to="/create-invoice">Create new Invoice</NavLink>
 				</button>
-				<button onClick={() => logout()}>LogOut</button>
 				<div className="files-table">
 					<div className="entry-first">
 						<div>name Of file</div>
 						<div>Date updated</div>
 						<div>Size</div>
 					</div>
+					{isFetchingData&&(
+						<LoadingAnimation/>
+					)}
 					{files.map(({ id, data }) => {
 						let updatedData = new Date(data.updated);
 						return (

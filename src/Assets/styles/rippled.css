@@ -1,0 +1,31 @@
+@keyframes ripple {
+  to {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+.rippled {
+  appearance: none;
+  border: none;
+  display: block;
+  /* font-size: 1rem; */
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  /* z-index: 1; */
+}
+.circle {
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  width: 100px;
+  /* z-index: 2; */
+  height: 100px;
+  border-radius: 50%;
+  /* border-radius: 0 !important; */
+  /* background-color: rgb(235, 235, 235); */
+  position: absolute;
+  transform: scale(0); 
+  animation: ripple 0.6s linear;
+}

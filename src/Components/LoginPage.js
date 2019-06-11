@@ -2,13 +2,29 @@ import React, { useState } from 'react';
 import firebase from 'firebase/app';
 import 'firebase/auth';
 
+import RippledButton from '../Components/RippledButton';
 import '../Assets/login-page.css';
-import { withRouter } from 'react-router-dom';
+import { NavLink, withRouter } from 'react-router-dom';
 
 const LoginPage = (props) => {
-	const [ userEmail, setUserEmail ] = useState('test@elefcodes.gr');
+	const [ userEmail, setUserEmail ] = useState('panteliselef@gmail.com');
 	const [ userPassword, setUserPassword ] = useState('123456');
 
+	const forgotPassword = () => {
+		if(!firebase.auth().currentUser){
+			firebase
+				.auth()
+				.sendPasswordResetEmail(userEmail)
+				.then(function() {
+					// Email sent.
+					alert("Check your emails");
+				})
+				.catch(function(error) {
+					console.log(error);
+					// An error happened.
+				});
+		}
+	};
 	const onSumbit = (e) => {
 		e.preventDefault();
 		console.log(userEmail, userPassword);
@@ -27,8 +43,9 @@ const LoginPage = (props) => {
 					.signInWithEmailAndPassword(userEmail, userPassword)
 					.then((success) => {
 						console.log(success);
-						setTimeout(()=>{
-							props.history.push('/dashboard')},100);
+						setTimeout(() => {
+							props.history.push('/dashboard');
+						}, 100);
 					})
 					.catch((err) => {
 						console.error(err);
@@ -66,6 +83,13 @@ const LoginPage = (props) => {
 				<button className="submit" onClick={(e) => onSumbit(e)}>
 					log in
 				</button>
+				<div className="links">
+					<RippledButton onClick={()=>forgotPassword()} className="link" color="rgba(198, 175, 255, 1)">
+						Forgot password
+					</RippledButton>
+					{/* <div onClick={() => forgotPassword()}>Forgot password ?</div> */}
+					<NavLink className="link" to="sign-up">sign Up</NavLink>
+				</div>
 			</form>
 		</div>
 	);

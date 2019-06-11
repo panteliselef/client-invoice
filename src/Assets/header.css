@@ -1,0 +1,30 @@
+.header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0em 1em; 
+}
+.header ul{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.header ul li {
+  cursor: pointer;
+  padding: .7em;
+  border-radius: 10px;
+  min-width: 5em;
+  text-align: center;
+  font-size: .9em;
+  transition: all .2s ease-in-out;
+  border: 2px solid #C6AFFF;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.header ul li:hover {
+  background-color: rgba(211, 207, 222, 0.2);
+}
+.header ul li:active {
+  background-color: rgba(198, 175, 255, 0.3);
+}
