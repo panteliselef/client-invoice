@@ -5,9 +5,9 @@ body {
 form.invoice-form .item-description-table .entry,
 form.invoice-form .item-description-table .entry-title {
   display: grid;
-  grid-template-columns: 20px auto 10%;
+  grid-template-columns: 20px auto 4em;
   grid-column-gap: .5em;
-  padding: 1em 1em;
+  padding: 1em 0em;
   margin: 0em 1em;
   overflow: hidden;
   align-items: center;
@@ -132,4 +132,27 @@ form.invoice-form .item-description-table .entry input {
 form.invoice-form .item-description-table .entry input:hover,
 form.invoice-form .item-description-table .entry input:focus {
   background-color: rgba(198, 175, 255, 0.1);
+}
+
+.btn-rounded{
+  margin: 1em 0.5em;
+  text-transform: capitalize;
+  background-color: #192466;
+  font-weight: bold;
+  box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
+  border-radius: 25px;
+  display: inline-block;
+  color: #fff;
+  padding: 1em;
+  min-width: 6em;
+  text-align: center;
+  cursor: pointer;
+  font-size: 1em;
+}
+.btn-rounded a {
+  color: #fff;
+  text-transform: none;
+  text-decoration: none;
+  font-size: 1em;
+  text-transform: capitalize;
 }

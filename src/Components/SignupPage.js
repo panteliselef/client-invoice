@@ -27,7 +27,7 @@ const SignupPage = (props) => {
 			setSecretPasscode(snapshot.val().secretPasscode);
 			console.log(snapshot.val());
 		});
-	}, []);
+	}, [passcode]);
 
 	const checkSecretPassCode = (e) => {
 		e.preventDefault();

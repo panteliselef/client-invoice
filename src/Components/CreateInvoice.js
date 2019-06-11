@@ -4,7 +4,7 @@
 //TODO: Check for name in test.pdf
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
-import firebase, { database } from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/storage';
 import 'firebase/auth';
 import 'firebase/database';
@@ -157,8 +157,8 @@ const Dashboard = () => {
 
 	return (
 		<form name="invoice-form" className="invoice-form">
-			<img id="img" width="100" height="100" src={creativedaylogo} />
-			<img id="img-invoice" width="100" height="100" src={invoice} />
+			<img id="img" width="100" height="100" src={creativedaylogo} alt="invisible" />
+			<img id="img-invoice" width="100" height="100" src={invoice} alt="invisible" />
 			<div className="client-info-inputs">
 				<h2>Client Info</h2>
 				<div className="inputs">

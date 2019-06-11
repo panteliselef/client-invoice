@@ -15,7 +15,7 @@ const afterAuthCompleted = (redirectPath) => (WrappedComponent) => {
 			}
 		}
 		componentWillReceiveProps(nextProps) {
-			const { me, history } = this.props;
+			// const { me, history } = this.props;
 			// const { me: nextMe } = nextProps;
 			// if (me && !nextMe) {
 			//   // this case is a must,

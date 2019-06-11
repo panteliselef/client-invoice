@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import firebase from 'firebase/app';
+import { NavLink,withRouter } from 'react-router-dom';
+import firebase, { storage } from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/database';
 import 'firebase/storage';
@@ -26,7 +26,6 @@ const Dashboard = (props) => {
 
 	useEffect(
 		() => {
-			let f = [];
 			firebaseFiles.on('value', (snapshot) => {
 				const fileObj = snapshot.val();
 				if (fileObj) {
@@ -37,42 +36,74 @@ const Dashboard = (props) => {
 					console.log(fileList);
 
 					setFiles(fileList);
-				}else{
+				} else {
 					setFiles([]);
 				}
-				// snapshot.forEach((child) => {
-				// 	console.log(child.val());
-				// 	f.push({
-				// 		id: child.key,
-				// 		data: child.val().metadata
-				// 	});
-				// });
 			});
 		},
 		[ user ]
 	);
-	function bytesToSize(bytes) {
-   var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-   if (bytes == 0) return '0 Byte';
-   var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-   return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
-};
+	const bytesToSize = (bytes) => {
+		var sizes = [ 'Bytes', 'KB', 'MB', 'GB', 'TB' ];
+		if (bytes === 0) return '0 Byte';
+		var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+		return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+	};
+
+	const downloadPDF = (event, pdfName) => {
+		event.preventDefault();
+		console.log(pdfName);
+		let pdfRef = firebase.storage().ref(`/${user.uid}/invoices/${pdfName}`);
+		pdfRef
+			.getDownloadURL()
+			.then((url) => {
+				console.log(url);
+				window.location = url;
+				console.log("END");
+			})
+			.catch((error) => {
+				console.error(error);
+				switch (error.code) {
+					case 'storage/object-not-found':
+						// File doesn't exist
+						break;
+
+					case 'storage/unauthorized':
+						// User doesn't have permission to access the object
+						break;
+
+					case 'storage/canceled':
+						// User canceled the upload
+						break;
+					case 'storage/unknown':
+						// Unknown error occurred, inspect the server response
+						break;
+				}
+			});
+	};
 	return (
 		<div className="dashboard-container">
 			<div className="dashboard">
 				<h1>Dashboard</h1>
-				<button>
+				<button className="btn-rounded">
 					<NavLink to="/create-invoice">Create new Invoice</NavLink>
 				</button>
 				<button onClick={() => logout()}>LogOut</button>
 				<div className="files-table">
+					<div className="entry-first">
+						<div>name Of file</div>
+						<div>Date updated</div>
+						<div>Size</div>
+					</div>
 					{files.map(({ id, data }) => {
 						let updatedData = new Date(data.updated);
 						return (
 							<div key={id} className="entry">
 								<div>{data.name}</div>
-								<div>{`${updatedData.getFullYear()}-${updatedData.getMonth()+1}-${updatedData.getDate()}`}</div>
+								<div>{`${updatedData.getFullYear()}-${updatedData.getMonth() +
+									1}-${updatedData.getDate()}`}</div>
 								<div>{bytesToSize(data.size)}</div>
+								<div onClick={(e) => downloadPDF(e, data.name)}>Open</div>
 							</div>
 						);
 					})}
@@ -81,4 +112,4 @@ const Dashboard = (props) => {
 		</div>
 	);
 };
-export default Dashboard;
+export default withRouter(Dashboard);
