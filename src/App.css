@@ -7,11 +7,10 @@ form.invoice-form .item-description-table .entry-title {
   display: grid;
   grid-template-columns: 20px auto 4em;
   grid-column-gap: .5em;
-  padding: 1em 0em;
+  padding: .7em 0em;
   margin: 0em 1em;
   overflow: hidden;
   align-items: center;
-  border-top: 1px solid #C6AFFF;
   min-height: 20px;
   background-clip: border-box;
 }
@@ -101,9 +100,10 @@ form.invoice-form .button {
 }
 
 form.invoice-form {
-	max-width: 800px;
-	margin: auto;
-	padding: 1em;
+      font-size: 1rem;
+    width: 90%;
+    max-width: 820px;
+    margin: auto;
 }
 
 form.invoice-form input {
@@ -115,8 +115,30 @@ form.invoice-form input {
 
 
 form.invoice-form .input-with-label input {
-  max-width: 10em;
-  display: block;
+  outline: none;
+  padding: .7em 0em;
+  padding-right: 1em;
+  border-radius: 20px;
+  transition: .3s all ease;
+  font-weight: 500;
+  max-width: calc(10em - 1em);
+  text-align: right;
+  background-color: rgba(198, 175, 255, 0.3);
+}
+form.invoice-form .input-with-label input::placeholder {
+  color: #8C99FF;
+}
+
+form.invoice-form .input-with-label .file-extention {
+  font-weight: 500;
+  font-size: 1rem;
+} 
+
+form.invoice-form .input-with-label {
+  margin: 0 1em;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 form.invoice-form .item-description-table .entry input {

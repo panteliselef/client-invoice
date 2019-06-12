@@ -23,18 +23,6 @@ const App = (props) => {
 	const database = firebase.database();
 	const [ state, dispatch ] = useReducer(mainReducer, initState);
 
-	function authUser() {
-   return new Promise(function (resolve, reject) {
-      firebase.auth().onAuthStateChanged(function(user) {
-         if (user) {
-            resolve(user);
-         } else {
-            reject('User not logged in');
-         }             
-      });
-   });
-}
-
 	useEffect(() => {
 		firebase.auth().onAuthStateChanged(function(user) {
 			console.log(user);

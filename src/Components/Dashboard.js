@@ -35,6 +35,10 @@ const Dashboard = (props) => {
 					setIsFetchingData(false);
 				}
 			});
+
+			return function cleanup(){
+				firebaseFiles.off();
+			}
 		},
 		[ user ]
 	);

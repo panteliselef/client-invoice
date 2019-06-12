@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/auth';
-
 import '../Assets/login-page.css';
 import { withRouter, NavLink } from 'react-router-dom';
 
@@ -14,22 +13,23 @@ const SignupPage = (props) => {
 
 	const [ secretPasscode, setSecretPasscode ] = useState('');
 
+	const user = firebase.auth().currentUser;
 	const database = firebase.database();
-	const passcode = database.ref('/appInfo');
+	// const passcode = database.ref('/appInfo/secretPasscode');
+	const firebaseFiles = database.ref(`/files`);
 
 	const validateEmail = (email) => {
 		var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 		return re.test(email);
 	};
-
 	useEffect(
 		() => {
-			passcode.once('value', (snapshot) => {
+			firebase.database().ref('/appInfo').on('value', (snapshot) => {
+				console.warn(snapshot.val());
 				setSecretPasscode(snapshot.val().secretPasscode);
-				console.log(snapshot.val());
 			});
 		},
-		[ passcode ]
+		[ user ]
 	);
 
 	const checkSecretPassCode = (e) => {

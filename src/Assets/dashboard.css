@@ -11,8 +11,11 @@ div.dashboard-container {
 	padding: 1em 0;
 }
 
-div.dashboard{
+div.dashboard-container h1 {
+	color: #192466;
+}
 
+div.dashboard {
 	font-size: 1rem;
 	width: 90%;
 	max-width: 820px;
@@ -22,29 +25,28 @@ div.dashboard{
 div.dashboard .files-table {
 	background-color: #fff;
 	margin-top: 2em;
-  border-radius: 20px;
+	border-radius: 20px;
 	display: grid;
 	overflow: hidden;
 	box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
 }
 
 div.dashboard .files-table .entry,
-div.dashboard .files-table .entry-first{
+div.dashboard .files-table .entry-first {
 	cursor: pointer;
-  /* margin: 0em 1em; */
-  overflow: hidden;
-  align-items: center;
+	/* margin: 0em 1em; */
+	overflow: hidden;
+	align-items: center;
 	min-height: 20px;
 	background-clip: border-box;
-	border-top: 1px solid #C6AFFF;
+	border-top: 1px solid #c6afff;
 	padding: 1em 1.2em;
 	display: grid;
 	grid-template-columns: auto 7em 4em 4em;
 	grid-column-gap: .5em;
 }
-div.dashboard .files-table .entry div{
+div.dashboard .files-table .entry div {
 	color: #192466;
-
 }
 div.dashboard .files-table .entry-first div {
 	color: #192466;
@@ -55,13 +57,13 @@ div.dashboard .files-table .entry-first {
 	border: none;
 	cursor: initial;
 	margin: 0;
-	background-color: #C6AFFF;
+	background-color: #c6afff;
 }
 
-div.dashboard .files-table .entry:hover{
+div.dashboard .files-table .entry:hover {
 	background-color: rgba(198, 175, 255, 0.3);
 }
 
-div.dashboard .files-table .entry:nth-child(2){
+div.dashboard .files-table .entry:nth-child(2) {
 	border: none;
 }

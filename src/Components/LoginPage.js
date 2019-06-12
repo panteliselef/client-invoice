@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import 'firebase/database';
 
 import RippledButton from '../Components/RippledButton';
 import '../Assets/login-page.css';
@@ -11,13 +12,13 @@ const LoginPage = (props) => {
 	const [ userPassword, setUserPassword ] = useState('123456');
 
 	const forgotPassword = () => {
-		if(!firebase.auth().currentUser){
+		if (!firebase.auth().currentUser) {
 			firebase
 				.auth()
 				.sendPasswordResetEmail(userEmail)
 				.then(function() {
 					// Email sent.
-					alert("Check your emails");
+					alert('Check your emails');
 				})
 				.catch(function(error) {
 					console.log(error);
@@ -25,6 +26,7 @@ const LoginPage = (props) => {
 				});
 		}
 	};
+
 	const onSumbit = (e) => {
 		e.preventDefault();
 		console.log(userEmail, userPassword);
@@ -84,11 +86,13 @@ const LoginPage = (props) => {
 					log in
 				</button>
 				<div className="links">
-					<RippledButton onClick={()=>forgotPassword()} className="link" color="rgba(198, 175, 255, 1)">
+					<RippledButton onClick={() => forgotPassword()} className="link" color="rgba(198, 175, 255, 1)">
 						Forgot password
 					</RippledButton>
 					{/* <div onClick={() => forgotPassword()}>Forgot password ?</div> */}
-					<NavLink className="link" to="sign-up">sign Up</NavLink>
+					<NavLink className="link" to="sign-up">
+						sign Up
+					</NavLink>
 				</div>
 			</form>
 		</div>
