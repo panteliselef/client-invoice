@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink,withRouter } from 'react-router-dom';
+import { NavLink, withRouter } from 'react-router-dom';
 import firebase, { storage } from 'firebase/app';
 import Header from '../Components/Header';
 import LoadingAnimation from '../Components/LoadingAnimation';
@@ -8,14 +8,14 @@ import 'firebase/database';
 import 'firebase/storage';
 import '../Assets/dashboard.css';
 const Dashboard = (props) => {
-
 	const [ files, setFiles ] = useState([]);
 	const database = firebase.database();
 	const user = firebase.auth().currentUser;
+	const [displayName,setDisplayName] = useState('');
 	console.log('Props', props);
 	const firebaseFiles = database.ref(`/files/${props.data.signedInUserInfo.uid}/invoices`);
 
-	const [isFetchingData,setIsFetchingData] = useState(false);
+	const [ isFetchingData, setIsFetchingData ] = useState(false);
 
 	useEffect(
 		() => {
@@ -36,9 +36,12 @@ const Dashboard = (props) => {
 				}
 			});
 
-			return function cleanup(){
+			console.log("USER",user);
+			// setDisplayName(user.displayName);
+
+			return function cleanup() {
 				firebaseFiles.off();
-			}
+			};
 		},
 		[ user ]
 	);
@@ -58,7 +61,7 @@ const Dashboard = (props) => {
 			.then((url) => {
 				console.log(url);
 				window.location = url;
-				console.log("END");
+				console.log('END');
 			})
 			.catch((error) => {
 				console.error(error);
@@ -81,34 +84,41 @@ const Dashboard = (props) => {
 			});
 	};
 	return (
-		<div className="dashboard-container">
-			<Header/>
+		<div className="container">
+			<Header />
 			<div className="dashboard">
-				<h1>Dashboard</h1>
-				<button className="btn-rounded">
-					<NavLink to="/create-invoice">Create new Invoice</NavLink>
-				</button>
+				<div className="page-title"> Dashboard</div>
+				{displayName !== '' && (
+				<div className="page-subtitle"> Welcome, {displayName}</div>
+				)}
+				<NavLink to="/create-invoice">
+					<button className="btn-rounded">Create new Invoice</button>
+				</NavLink>
 				<div className="files-table">
 					<div className="entry-first">
 						<div>name Of file</div>
 						<div>Date updated</div>
 						<div>Size</div>
 					</div>
-					{isFetchingData&&(
-						<LoadingAnimation/>
+					{isFetchingData ? (
+						<LoadingAnimation />
+					) : files.length === 0 ? (
+						<div style={{textAlign:"center",margin:"2em"}}>No files uploaded yet</div>
+					) : (
+						files.map(({ id, data }) => {
+							let updatedData = new Date(data.updated);
+							return (
+								<div key={id} className="entry">
+									<div>{data.name}</div>
+									{/* <div>{`${updatedData.getFullYear()}-${updatedData.getMonth() +
+										1}-${updatedData.getDate()}__ ${updatedData.toLocaleString()}`}</div> */}
+									<div>{updatedData.toLocaleString()}</div>
+									<div>{bytesToSize(data.size)}</div>
+									<div onClick={(e) => downloadPDF(e, data.name)}>Open</div>
+								</div>
+							);
+						})
 					)}
-					{files.map(({ id, data }) => {
-						let updatedData = new Date(data.updated);
-						return (
-							<div key={id} className="entry">
-								<div>{data.name}</div>
-								<div>{`${updatedData.getFullYear()}-${updatedData.getMonth() +
-									1}-${updatedData.getDate()}`}</div>
-								<div>{bytesToSize(data.size)}</div>
-								<div onClick={(e) => downloadPDF(e, data.name)}>Open</div>
-							</div>
-						);
-					})}
 				</div>
 			</div>
 		</div>

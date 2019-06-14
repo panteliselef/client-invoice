@@ -1,7 +1,26 @@
-body {
+body, input{
   font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+text-rendering: optimizeLegibility; 
 }
 
+.page-title {
+  font-size: 2em;
+  font-weight: bold;
+  color: #192466;
+}
+.container {
+  width: 100vw;
+  height: 100%;
+  position: relative;
+  display: block;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: bottom center;
+  background-image: url('./Assets/bg-white.svg');
+  min-height: 100vh;
+}
 form.invoice-form .item-description-table .entry,
 form.invoice-form .item-description-table .entry-title {
   display: grid;
@@ -17,6 +36,10 @@ form.invoice-form .item-description-table .entry-title {
 
 form.invoice-form * {
   color: #192466;
+  text-decoration: none;
+}
+form.invoice-form a:hover{
+  text-decoration: underline;
 }
 form.invoice-form .item-description-table .entry:nth-child(2) { 
  border-top: 1px solid transparent;
@@ -35,14 +58,16 @@ form.invoice-form .client-info-inputs {
 .progress-bar {
   width: 100%;
   max-width: 5em;
+  min-width: 4em;
   background-color: rgb(230, 230, 230);
   height: .3em;
   border-radius: 100px;
   overflow: hidden;
   transition: all .3s ease-in-out;
 }
-.progress-bar div {
+.progress-bar #progress-bar-colored {
   transition: all .3s ease-in-out;
+  margin: 0;
   width: 0%;
   height: 100%;
   background-color: #B596FF;
@@ -69,12 +94,29 @@ form.invoice-form .client-info-inputs .inputs input {
   padding: .5em 0em;
   text-indent: .5em;
   outline: none;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
+form.invoice-form .uploading-section {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin: 0.3em 0 1em;
+}
+form.invoice-form .uploading-section div {
+  margin: 0 .5em;
+}
 form.invoice-form .button-area {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+form.invoice-form .button-area a{
+  margin: 0 1em;
 }
 
 form.invoice-form .client-total-bill {
@@ -84,6 +126,7 @@ form.invoice-form .client-total-bill {
   align-items: center;
   margin: 1em;
   font-size: 2em;
+  margin-bottom: 4em;
 }
 form.invoice-form .button {
   margin: 1em;
@@ -120,6 +163,7 @@ form.invoice-form .input-with-label input {
   padding-right: 1em;
   border-radius: 20px;
   transition: .3s all ease;
+
   font-weight: 500;
   max-width: calc(10em - 1em);
   text-align: right;
@@ -164,17 +208,12 @@ form.invoice-form .item-description-table .entry input:focus {
   box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
   border-radius: 25px;
   display: inline-block;
+  border: none;
   color: #fff;
   padding: 1em;
   min-width: 6em;
   text-align: center;
+  outline: none;
   cursor: pointer;
   font-size: 1em;
-}
-.btn-rounded a {
-  color: #fff;
-  text-transform: none;
-  text-decoration: none;
-  font-size: 1em;
-  text-transform: capitalize;
 }

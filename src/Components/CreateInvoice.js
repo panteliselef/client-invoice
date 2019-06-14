@@ -1,18 +1,24 @@
 // https://coolors.co/8c99ff-c6afff-b596ff-192466-fff4fa
 
-//TODO: FIX duplicate on realtime db
-//TODO: Check for name in test.pdf
+import Header from './Header';
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import firebase from 'firebase/app';
 import 'firebase/storage';
 import 'firebase/auth';
 import 'firebase/database';
+import { NavLink } from 'react-router-dom';
 import creativedaylogo from '../Assets/creativedaylogo.png';
 import invoice from '../Assets/invoice.png';
 import footer from '../Assets/footer.png';
-const Dashboard = () => {
+import arrowBox from '../Assets/arrow-left-box.svg';
+import arrow from '../Assets/arrow-left.svg';
+import arrowCircleOutline from '../Assets/arrow-left-circle-outline.svg';
+import arrowCircle from '../Assets/arrow-left-circle.svg';
+const Dashboard = (props) => {
 	const database = firebase.database();
+
+	const firebaseFiles = database.ref(`/files/${props.uid}/invoices`);
 	const [ clientInfo, setClientInfo ] = useState({
 		name: '',
 		address: '',
@@ -23,9 +29,9 @@ const Dashboard = () => {
 		name: 'Michael Langhals',
 		address: '9240 Old Redwood Hwy Ste 114',
 		city: 'Windsor, CA 95492',
-		total: "0",
-		filename: "test",
-	}
+		total: '0',
+		filename: 'test'
+	};
 
 	const [ items, setItems ] = useState([
 		{
@@ -49,6 +55,19 @@ const Dashboard = () => {
 	const [ readyToUpload, setReadyToUpload ] = useState(false);
 	const [ uploadedPercentage, setUploadedPercentage ] = useState(0);
 	const [ uploadCompleted, setUploadCompleted ] = useState(false);
+
+	const checkForDuplicatePdf = () => {
+		return new Promise((resolve, reject) => {
+			firebaseFiles.once('value', (snapshot) => {
+				snapshot.forEach((child) => {
+					console.log(child.val().metadata.name, `${nameOfPDF}.pdf`);
+					if (`${nameOfPDF || predefined.filename}.pdf` === child.val().metadata.name)
+						reject({ error: new Error('Found duplicate file'), id: child.key });
+				});
+				resolve('Hey');
+			});
+		});
+	};
 
 	const updateItemDescription = (item, value) => {
 		let n = items.map((it) => {
@@ -80,7 +99,7 @@ const Dashboard = () => {
 
 	const uploadPDFToStorage = (file) => {
 		let user = firebase.auth().currentUser;
-		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${nameOfPDF || predefined.filename}`);
+		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${nameOfPDF || predefined.filename}.pdf`);
 		console.log(firebase.auth().currentUser);
 
 		let metadata = {
@@ -142,7 +161,7 @@ const Dashboard = () => {
 			foqrmat: 'a4'
 		});
 
-		let secondaryColor = "#39B0E5";
+		let secondaryColor = '#39B0E5';
 		doc.addImage(
 			document.getElementById('img'),
 			'PNG',
@@ -164,12 +183,13 @@ const Dashboard = () => {
 			'dwa',
 			'FAST'
 		);
+		const pdfWidth = doc.internal.pageSize.getWidth();
 
 		doc.setFont('helvetica');
 		doc.setTextColor('#ffffff');
 		doc.setFontType('bold');
 		doc.setFontSize(25);
-		doc.text(doc.internal.pageSize.getWidth() / 2 - calculateWidth(25, 'BILL TO:', doc) / 2, 115, 'BILL TO:', {
+		doc.text(doc.internal.pageSize.getWidth() / 2 - calculateWidth(25, 'BILL TO:', pdfWidth) / 2, 115, 'BILL TO:', {
 			align: 'center'
 		});
 		doc.setFontSize(13);
@@ -178,7 +198,7 @@ const Dashboard = () => {
 		let billingAddress = clientInfo.address || predefined.address;
 		let billingCity = clientInfo.city || predefined.city;
 		doc.text(
-			doc.internal.pageSize.getWidth() / 2 - calculateWidth(13, billingName, doc) / 2,
+			doc.internal.pageSize.getWidth() / 2 - calculateWidth(13, billingName, pdfWidth) / 2,
 			148,
 			billingName,
 			{
@@ -189,7 +209,7 @@ const Dashboard = () => {
 		doc.setFontSize(11);
 		doc.setFontType('normal');
 		doc.text(
-			doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, billingAddress, doc) / 2,
+			doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, billingAddress, pdfWidth) / 2,
 			160,
 			billingAddress,
 			{
@@ -197,7 +217,7 @@ const Dashboard = () => {
 			}
 		);
 		doc.text(
-			doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, billingCity, doc) / 2,
+			doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, billingCity, pdfWidth) / 2,
 			170,
 			billingCity,
 			{
@@ -207,7 +227,7 @@ const Dashboard = () => {
 
 		doc.setTextColor(secondaryColor);
 		doc.text(
-			60 + 0 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'INVOICE #', doc),
+			60 + 0 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'INVOICE #', pdfWidth),
 			210,
 			'INVOICE #',
 			{
@@ -217,7 +237,7 @@ const Dashboard = () => {
 
 		doc.setTextColor(secondaryColor);
 		doc.text(
-			60 + 1 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'INVOICE DATE', doc),
+			60 + 1 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'INVOICE DATE', pdfWidth),
 			210,
 			'INVOICE DATE',
 			{
@@ -225,23 +245,33 @@ const Dashboard = () => {
 			}
 		);
 		doc.setTextColor(secondaryColor);
-		doc.text(60 + 2 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'DUE DATE', doc), 210, 'DUE DATE', {
-			align: 'center'
-		});
+		doc.text(
+			60 + 2 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'DUE DATE', pdfWidth),
+			210,
+			'DUE DATE',
+			{
+				align: 'center'
+			}
+		);
 
-		doc.text(60 + 3 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'REF #', doc), 210, 'REF #', {
+		doc.text(60 + 3 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'REF #', pdfWidth), 210, 'REF #', {
 			align: 'center'
 		});
 
 		doc.setTextColor('#000');
 		doc.setFontSize(10);
 
-		doc.text(60 + 0 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '0003653', doc), 220, '0003653', {
-			align: 'center'
-		});
+		doc.text(
+			60 + 0 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '0003653', pdfWidth),
+			220,
+			'0003653',
+			{
+				align: 'center'
+			}
+		);
 
 		doc.text(
-			60 + 1 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', doc),
+			60 + 1 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', pdfWidth),
 			220,
 			'06 June 2019',
 			{
@@ -250,20 +280,25 @@ const Dashboard = () => {
 		);
 
 		doc.text(
-			60 + 2 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', doc),
+			60 + 2 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', pdfWidth),
 			220,
 			'06 June 2019',
 			{
 				align: 'center'
 			}
 		);
-		doc.text(60 + 3 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '007733', doc), 220, '007733', {
-			align: 'center'
-		});
+		doc.text(
+			60 + 3 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '007733', pdfWidth),
+			220,
+			'007733',
+			{
+				align: 'center'
+			}
+		);
 
 		doc.setLineWidth(2.5);
 		doc.setDrawColor(237, 237, 237);
-		doc.line(0, 240, doc.internal.pageSize.getWidth(), 240, 'F');
+		doc.line(0, 240, pdfWidth, 240, 'F');
 
 		doc.setFontSize(11);
 		doc.setFontType('normal');
@@ -274,34 +309,70 @@ const Dashboard = () => {
 		doc.text(70, 280, 'Item Descritpion', {
 			align: 'left'
 		});
-		doc.text(doc.internal.pageSize.getWidth() - 60, 280, 'Amount', {
+		doc.text(pdfWidth - 60, 280, 'Amount', {
 			align: 'right'
 		});
 
 		doc.setLineWidth(0.5);
 		doc.setDrawColor(221, 220, 220);
-		doc.line(50, 290, doc.internal.pageSize.getWidth() - 50, 290, 'F');
+		doc.line(50, 290, pdfWidth - 50, 290, 'F');
 
 		///
 
 		let currentHeight = 305;
 		arrayOfItems.forEach((item) => {
-			console.log(item.description)
-			doc.setTextColor('#000');
-			doc.text(60, currentHeight, ""+item.id, {
-				align: 'left'
-			});
-			doc.text(70, currentHeight, item.description, {
-				align: 'left'
-			});
-			doc.text(doc.internal.pageSize.getWidth() - 60, currentHeight, item.price.toFixed(2), {
-				align: 'right'
-			});
-			doc.setLineWidth(0.5);
-			doc.setDrawColor(221, 220, 220);
-			doc.line(50, currentHeight+10, doc.internal.pageSize.getWidth() - 50, currentHeight+10, 'F');
-			currentHeight+= 26;
+			if (item.description !== '' && item.description != null) {
+				console.log(item.description);
+				doc.setTextColor('#000');
+				doc.text(60, currentHeight, '' + item.id, {
+					align: 'left'
+				});
+				doc.text(70, currentHeight, item.description, {
+					align: 'left'
+				});
+				doc.text(doc.internal.pageSize.getWidth() - 60, currentHeight, item.price.toFixed(2), {
+					align: 'right'
+				});
+				doc.setLineWidth(0.5);
+				doc.setDrawColor(221, 220, 220);
+				doc.line(50, currentHeight + 10, doc.internal.pageSize.getWidth() - 50, currentHeight + 10, 'F');
+				currentHeight += 26;
+			}
 		});
+
+		doc.setLineWidth(1);
+		doc.setDrawColor(221, 220, 220);
+		doc.line(
+			doc.internal.pageSize.getWidth() - 200,
+			currentHeight + 13,
+			doc.internal.pageSize.getWidth() - 50,
+			currentHeight + 13,
+			'F'
+		);
+
+		doc.setFontSize(14);
+		doc.setFontType('bold');
+		console.log('PANTELIS', calculateWidth(14, 'HELLO Sir', doc));
+		doc.text(
+			doc.internal.pageSize.getWidth() - 60 - calculateWidth(14, '$' + calculateTotal().toFixed(2)),
+			currentHeight + 30,
+			'Balance Due',
+			{
+				align: 'right'
+			}
+		);
+
+		doc.text(doc.internal.pageSize.getWidth() - 50, currentHeight + 30, `$${calculateTotal().toFixed(2)}`, {
+			align: 'right'
+		});
+
+		doc.line(
+			doc.internal.pageSize.getWidth() - 200,
+			currentHeight + 40,
+			doc.internal.pageSize.getWidth() - 50,
+			currentHeight + 40,
+			'F'
+		);
 
 		doc.addImage(
 			document.getElementById('img-footer'),
@@ -310,13 +381,14 @@ const Dashboard = () => {
 			doc.internal.pageSize.getHeight() - 30,
 			doc.internal.pageSize.getHeight(),
 			doc.internal.pageSize.getHeight(),
-			'wadf'
+			'wadf',
+			'FAST'
 		);
 
 		doc.setTextColor('#fff');
 		doc.setFontSize(11);
 		doc.text(
-			doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, 'www.creativeday.me', doc) / 2,
+			doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, 'www.creativeday.me', pdfWidth) / 2,
 			doc.internal.pageSize.getHeight() - 15,
 			'www.creativeday.me',
 			{
@@ -327,105 +399,145 @@ const Dashboard = () => {
 		// console.log(doc.output('datauristring', 'filename.pdf'));
 		// let file = doc.save('one.pdf');
 		let file = doc.output('blob');
-		// console.log(file);
-		uploadPDF(file);
+		return file;
+	};
+
+	const checkPdf = (arr) => {
+		checkForDuplicatePdf()
+			.then((msg) => {
+				console.log(msg);
+				let file = createPDF(arr);
+				uploadPDF(file);
+			})
+			.catch((obj) => {
+				console.error(obj.error);
+				if (window.confirm('You already have a pdf with this name. Would you like to replace it ?')) {
+					let file = createPDF(arr);
+					let fileToBeDeleted = database.ref(`/files/${props.uid}/invoices/${obj.id}`);
+					fileToBeDeleted.remove().then((val) => {
+						console.log('VAL', val);
+						uploadPDF(file);
+					});
+				} else {
+					//no
+				}
+			});
 	};
 
 	const showItems = () => {
 		console.log(items);
 	};
 
-	const calculateWidth = (fontSize, string, doc) => {
+	const calculateWidth = (fontSize, string, widthOfPdf = 1) => {
 		console.log(string, 'width', string.length * (fontSize / 1.618));
-		return 50 * (fontSize / 1.618) / doc.internal.pageSize.getWidth();
+		return string.length * (fontSize / 1.618) / widthOfPdf;
 	};
 
 	return (
-		<form name="invoice-form" className="invoice-form">
-			<div style={{ display: 'none' }}>
-				<img id="img" width="100" height="100" src={creativedaylogo} alt="invisible" />
-				<img id="img-invoice" width="100" height="100" src={invoice} alt="invisible" />
-				<img id="img-footer" width="100" height="100" src={footer} alt="invisible" />
-			</div>
-			<div className="client-info-inputs">
-				<h1>Client Info</h1>
-				<div className="inputs">
-					<input
-						onChange={(e) => setClientInfo({ ...clientInfo, name: e.target.value })}
-						value={clientInfo.name}
-						placeholder="Name"
-					/>
-					<input
-						onChange={(e) => setClientInfo({ ...clientInfo, address: e.target.value })}
-						value={clientInfo.address}
-						placeholder="Address"
-					/>
-					<input
-						onChange={(e) => setClientInfo({ ...clientInfo, city: e.target.value })}
-						value={clientInfo.city}
-						placeholder="City"
-					/>
+		<div className="container">
+			<Header />
+			<form name="invoice-form" className="invoice-form">
+				<div style={{ display: 'none' }}>
+					<img id="img" width="100" height="100" src={creativedaylogo} alt="invisible" />
+					<img id="img-invoice" width="100" height="100" src={invoice} alt="invisible" />
+					<img id="img-footer" width="100" height="100" src={footer} alt="invisible" />
 				</div>
-			</div>
-			<div className="button-area">
-				<div onClick={() => addItemtoList()} className="button">
-					+ add Item
-				</div>
-
-				<div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-					{uploadCompleted && <div>Completed</div>}
-					{readyToUpload && (
-						<div className="progress-bar">
-							<div style={{ width: uploadedPercentage }} id="progress-bar-colored" />
+					<div style={{ display: 'flex', alignItems: 'center' }}>
+						<NavLink to="/dashboard">
+							<img src={arrowBox} width="30" height="30" />
+						</NavLink>
+						<div className="page-title" style={{ marginLeft: '1em' }}>
+							Client Info
 						</div>
-					)}
-					<div onClick={() => createPDF(items)} className="button">
+					</div>
+				<div className="client-info-inputs">
+					<div className="inputs">
+						<input
+							onChange={(e) => setClientInfo({ ...clientInfo, name: e.target.value })}
+							value={clientInfo.name}
+							placeholder="Name"
+						/>
+						<input
+							onChange={(e) => setClientInfo({ ...clientInfo, address: e.target.value })}
+							value={clientInfo.address}
+							placeholder="Address"
+						/>
+						<input
+							onChange={(e) => setClientInfo({ ...clientInfo, city: e.target.value })}
+							value={clientInfo.city}
+							placeholder="City"
+						/>
+					</div>
+				</div>
+				<div className="button-area">
+					<div onClick={() => addItemtoList()} className="button">
+						+ add Item
+					</div>
+					<div onClick={() => checkPdf(items)} className="button">
 						Create PDF
 					</div>
 				</div>
-			</div>
-			<div className="input-with-label">
-				<input id="name-of-pdf" placeholder="test" onChange={(e) => setNameOfPDF(e.target.value)} value={nameOfPDF} />
-				<div className="file-extention">
-					.pdf
-				</div>
-			</div>
+				{readyToUpload && (
+					<div className="uploading-section">
+						{uploadCompleted ? (
+							<div>
+								<NavLink to="/dashboard">Completed</NavLink>
+							</div>
+						) : (
+							<div>Uploading</div>
+						)}
 
-			<div className="item-description-table">
-				<div className="entry-title">
-					<div>#</div>
-					<div>Item Description</div>
-					<div>Price</div>
-				</div>
-				{items.map((item) => {
-					return (
-						<div key={item.id} className="entry">
-							<div>{item.id}</div>
-							<div>
-								<input
-									type="text"
-									placeholder="item name"
-									value={item.description}
-									onChange={(e) => updateItemDescription(item, e.target.value)}
-								/>
-							</div>
-							<div>
-								<input
-									type="number"
-									value={item.price}
-									placeholder="item name"
-									onChange={(e) => updateItemPrice(item, e.target.value)}
-									pattern="[0-9]*"
-								/>
-							</div>
+						<div className="progress-bar" style={{ marginRight: '2em' }}>
+							<div style={{ width: uploadedPercentage }} id="progress-bar-colored" />
 						</div>
-					);
-				})}
-			</div>
-			<div className="client-total-bill">
-				<div>Total Balance {calculateTotal().toFixed(2)}$</div>
-			</div>
-		</form>
+					</div>
+				)}
+				<div className="input-with-label">
+					<input
+						id="name-of-pdf"
+						placeholder="test"
+						onChange={(e) => setNameOfPDF(e.target.value)}
+						value={nameOfPDF}
+					/>
+					<div className="file-extention">.pdf</div>
+				</div>
+
+				<div className="item-description-table">
+					<div className="entry-title">
+						<div>#</div>
+						<div>Item Description</div>
+						<div>Price</div>
+					</div>
+					{items.map((item) => {
+						return (
+							<div key={item.id} className="entry">
+								<div>{item.id}</div>
+								<div>
+									<input
+										type="text"
+										placeholder="item name"
+										value={item.description}
+										onChange={(e) => updateItemDescription(item, e.target.value)}
+									/>
+								</div>
+								<div>
+									<input
+										type="number"
+										value={item.price}
+										placeholder="item name"
+										onChange={(e) => updateItemPrice(item, e.target.value)}
+										pattern="[0-9]*"
+									/>
+								</div>
+							</div>
+						);
+					})}
+				</div>
+				<div className="client-total-bill">
+					<div>Total Balance ${calculateTotal().toFixed(2)}</div>
+				</div>
+			</form>
+		</div>
 	);
 };
 export default Dashboard;

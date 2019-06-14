@@ -90,7 +90,7 @@ const LoginPage = (props) => {
 						Forgot password
 					</RippledButton>
 					{/* <div onClick={() => forgotPassword()}>Forgot password ?</div> */}
-					<NavLink className="link" to="sign-up">
+					<NavLink className="link" to="signup">
 						sign Up
 					</NavLink>
 				</div>

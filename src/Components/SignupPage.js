@@ -8,6 +8,8 @@ import { withRouter, NavLink } from 'react-router-dom';
 const SignupPage = (props) => {
 	const [ userEmail, setUserEmail ] = useState('panteliselef@outlook.com');
 	const [ userPassword, setUserPassword ] = useState(''); //123456
+	const [ userFullName, setUserFullName ] = useState('');
+	const [ errorMessage, setErrorMessage ] = useState('');
 
 	const [ isSignUpAvailable, setSignUpAvailable ] = useState(false);
 
@@ -25,7 +27,7 @@ const SignupPage = (props) => {
 	useEffect(
 		() => {
 			firebase.database().ref('/appInfo').on('value', (snapshot) => {
-				console.warn(snapshot.val());
+				console.error(snapshot.val());
 				setSecretPasscode(snapshot.val().secretPasscode);
 			});
 		},
@@ -61,25 +63,32 @@ const SignupPage = (props) => {
 		e.preventDefault();
 		console.log(userEmail, userPassword);
 
-		if (validateEmail(userEmail)) {
-			firebase
-				.auth()
-				.createUserWithEmailAndPassword(userEmail, userPassword)
-				.then((data) => {
-					console.log('succes', data.user);
-					writeUserData(data.user);
-					// props.history.push('/dashboard');
-				})
-				.catch((err) => {
-					console.error(err);
-				});
-		} else {
-			console.error('invalid email');
+		if (userEmail !== '' && userFullName !== '' && userPassword !== ''){
+			if (validateEmail(userEmail)) {
+				firebase
+					.auth()
+					.createUserWithEmailAndPassword(userEmail, userPassword)
+					.then((data) => {
+						console.log('succes', data.user);
+						data.user.updateProfile({
+							displayName: userFullName,
+						});
+						writeUserData(data.user);
+						// props.history.push('/dashboard');
+					})
+					.catch((err) => {
+						console.error(err);
+					});
+			} else {
+				setErrorMessage("Your email is invalid");
+			}
+		}else {
+			setErrorMessage("Please fill all the required(*) fields");
 		}
 	};
 	return (
 		<div className="login-page">
-			{isSignUpAvailable ? (
+			{true ? (
 				<form className="sign-in">
 					<div className="welcome-msg">
 						<span role="img" aria-label="shh">
@@ -87,14 +96,21 @@ const SignupPage = (props) => {
 						</span>{' '}
 						Sign up Here
 					</div>
-					<label>email</label>
+					<label>Full Name *</label>
+					<input
+						type="text"
+						onChange={(e) => setUserFullName(e.target.value)}
+						placeholder=""
+						value={userFullName}
+					/>
+					<label>email *</label>
 					<input
 						type="email"
 						onChange={(e) => setUserEmail(e.target.value)}
 						placeholder=""
 						value={userEmail}
 					/>
-					<label>password</label>
+					<label>password *</label>
 					<input
 						type="password"
 						onChange={(e) => setUserPassword(e.target.value)}
@@ -104,6 +120,9 @@ const SignupPage = (props) => {
 					<button className="submit" onClick={(e) => onSignUp(e)}>
 						Sign Up
 					</button>
+					<div className="error-message">
+						{errorMessage}
+					</div>
 					<div className="links">
 						<NavLink className="link" to="/login">
 							Already a member ?

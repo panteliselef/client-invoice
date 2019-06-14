@@ -48,7 +48,7 @@ const App = (props) => {
 				<Route exact path="/" render={(props)=>(
           <LimitedLoginPage {...props}/>
         )}/>
-				<Route exact path="/sign-up" render={(props)=>(
+				<Route exact path="/signup" render={(props)=>(
           <LimitedSignUpPage {...props}/>
         )}/>
 				{/* <Route exact path="/" component={LoginPage} /> */}
@@ -59,8 +59,8 @@ const App = (props) => {
 				<Route data={state} exact path="/dashboard" render={(props)=>(
           <ProtectedDashboard data={state} {...props}/>
         )}/>
-				<Route exact path="/create-invoice" render={(props)=>(
-          <ProtectedEditor {...props}/>
+				<Route uid={state.signedInUserInfo.uid}  exact path="/create-invoice" render={(props)=>(
+          <ProtectedEditor uid={state.signedInUserInfo.uid}  {...props}/>
         )}/>
 			</Switch>
 		</BrowserRouter>
