@@ -21,7 +21,7 @@ const RippledButton= (props)=> {
 
   const actionWithRipple = (e) => {
     createRipple(e);
-    props.onClick();
+    props.onClick(e);
   }
 
   console.log(props); 

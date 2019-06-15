@@ -42,7 +42,7 @@ div.dashboard .files-table .entry-first {
 	border-top: 1px solid #c6afff;
 	padding: 1em 1.2em;
 	display: grid;
-	grid-template-columns: auto 7em 4em 4em;
+	grid-template-columns: auto 10em 4em 4em;
 	grid-column-gap: .5em;
 }
 div.dashboard .files-table .entry div {

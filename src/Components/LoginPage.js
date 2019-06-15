@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/database';
-
+import { validateEmail } from '../Utils/utils';
 import RippledButton from '../Components/RippledButton';
 import '../Assets/login-page.css';
-import { NavLink, withRouter } from 'react-router-dom';
+import { NavLink, withRouter, Redirect } from 'react-router-dom';
 
 const LoginPage = (props) => {
-	const [ userEmail, setUserEmail ] = useState('panteliselef@gmail.com');
-	const [ userPassword, setUserPassword ] = useState('123456');
+	const [ userEmail, setUserEmail ] = useState(''); //panteliselef@gmail.com
+	const [ userPassword, setUserPassword ] = useState(''); //123456
+	const [ errorMessage, setErrorMessage ] = useState('');
 
 	const forgotPassword = () => {
-		if (!firebase.auth().currentUser) {
+		if (!firebase.auth().currentUser && validateEmail(userEmail)) {
 			firebase
 				.auth()
 				.sendPasswordResetEmail(userEmail)
@@ -24,16 +25,17 @@ const LoginPage = (props) => {
 					console.log(error);
 					// An error happened.
 				});
+		} else {
+			setErrorMessage('Your email is invalid');
 		}
 	};
 
 	const onSumbit = (e) => {
 		e.preventDefault();
 		console.log(userEmail, userPassword);
-
 		firebase
 			.auth()
-			.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+			.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 			.then(function() {
 				// Existing and future Auth states are now persisted in the current
 				// session only. Closing the window would clear any existing state even
@@ -50,6 +52,7 @@ const LoginPage = (props) => {
 						}, 100);
 					})
 					.catch((err) => {
+						setErrorMessage(err.message);
 						console.error(err);
 					});
 			})
@@ -69,30 +72,32 @@ const LoginPage = (props) => {
 					Shh, don't tell anyone
 				</div>
 				<label>email</label>
-				<input
-					type="email"
-					onChange={(e) => setUserEmail(e.target.value)}
-					placeholder="email"
-					value={userEmail}
-				/>
+				<input type="email" onChange={(e) => setUserEmail(e.target.value)} placeholder="" value={userEmail} />
 				<label>password</label>
 				<input
 					type="password"
 					onChange={(e) => setUserPassword(e.target.value)}
-					placeholder="password"
+					placeholder=""
 					value={userPassword}
 				/>
-				<button className="submit" onClick={(e) => onSumbit(e)}>
+				<RippledButton onClick={(e) => onSumbit(e)} className="submit" color="#B7BFFF">
 					log in
-				</button>
+				</RippledButton>
+				<div className="error-message">{errorMessage}</div>
 				<div className="links">
 					<RippledButton onClick={() => forgotPassword()} className="link" color="rgba(198, 175, 255, 1)">
 						Forgot password
 					</RippledButton>
-					{/* <div onClick={() => forgotPassword()}>Forgot password ?</div> */}
-					<NavLink className="link" to="signup">
+					<RippledButton
+						{...props}
+						className="link"
+						onClick={() => props.history.push('/signup')}
+						color="rgba(198, 175, 255, 1)"
+					>
+						{/* <NavLink to="signup">
+						</NavLink> */}
 						sign Up
-					</NavLink>
+					</RippledButton>
 				</div>
 			</form>
 		</div>

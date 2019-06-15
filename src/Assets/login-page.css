@@ -65,6 +65,7 @@ form.sign-in button.submit {
 	font-weight: bold;
 	margin: 1em 0;
 	cursor: pointer;
+	font-family: inherit;
 }
 
 form.sign-in div.links {

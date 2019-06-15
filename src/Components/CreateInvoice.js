@@ -1,7 +1,7 @@
 // https://coolors.co/8c99ff-c6afff-b596ff-192466-fff4fa
 
 import Header from './Header';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import firebase from 'firebase/app';
 import 'firebase/storage';
@@ -11,19 +11,30 @@ import { NavLink } from 'react-router-dom';
 import creativedaylogo from '../Assets/creativedaylogo.png';
 import invoice from '../Assets/invoice.png';
 import footer from '../Assets/footer.png';
+import QRcode from '../Assets/QRcode.png';
 import arrowBox from '../Assets/arrow-left-box.svg';
-import arrow from '../Assets/arrow-left.svg';
-import arrowCircleOutline from '../Assets/arrow-left-circle-outline.svg';
-import arrowCircle from '../Assets/arrow-left-circle.svg';
 const Dashboard = (props) => {
 	const database = firebase.database();
 
+	const [ maxNoteCharacters, setMaxCharacters ] = useState(650);
+	const [ lrefNumber, setlRefNumber ] = useState('');
+	const [ linvoiceNumber, setlInvoiceNumber ] = useState('');
 	const firebaseFiles = database.ref(`/files/${props.uid}/invoices`);
 	const [ clientInfo, setClientInfo ] = useState({
 		name: '',
 		address: '',
 		city: ''
 	});
+
+	useEffect(() => {
+		firebase.database().ref('/appInfo/lrefNumber').once('value', (snapshot) => {
+			setlRefNumber(snapshot.val());
+		});
+
+		firebase.database().ref('/appInfo/linvoiceNumber').once('value', (snapshot) => {
+			setlInvoiceNumber(snapshot.val());
+		});
+	}, []);
 
 	const predefined = {
 		name: 'Michael Langhals',
@@ -35,23 +46,29 @@ const Dashboard = (props) => {
 
 	const [ items, setItems ] = useState([
 		{
-			id: 1,
-			description: 'This is a Test Description',
-			price: 0.99
-		},
-		{
-			id: 2,
-			description: 'This is a Test Description',
-			price: 20.0
-		},
-		{
-			id: 3,
-			description: 'This is a Test Description',
-			price: 40.0
+			id:1,
+			description: "",
+			price:0
 		}
+		// {
+		// 	id: 1,
+		// 	description: 'This is a Test Description',
+		// 	price: 0.99
+		// },
+		// {
+		// 	id: 2,
+		// 	description: 'This is a Test Description',
+		// 	price: 20.0
+		// },
+		// {
+		// 	id: 3,
+		// 	description: 'This is a Test Description',
+		// 	price: 40.0
+		// }
 	]);
 
 	const [ nameOfPDF, setNameOfPDF ] = useState('');
+	const [ notes, setNotes ] = useState('');
 	const [ readyToUpload, setReadyToUpload ] = useState(false);
 	const [ uploadedPercentage, setUploadedPercentage ] = useState(0);
 	const [ uploadCompleted, setUploadCompleted ] = useState(false);
@@ -194,9 +211,12 @@ const Dashboard = (props) => {
 		});
 		doc.setFontSize(13);
 
-		let billingName = clientInfo.name || predefined.name;
-		let billingAddress = clientInfo.address || predefined.address;
-		let billingCity = clientInfo.city || predefined.city;
+		// let billingName = clientInfo.name || predefined.name;
+		// let billingAddress = clientInfo.address || predefined.address;
+		// let billingCity = clientInfo.city || predefined.city;
+		let billingName = clientInfo.name || ' ';
+		let billingAddress = clientInfo.address || ' ';
+		let billingCity = clientInfo.city || ' ';
 		doc.text(
 			doc.internal.pageSize.getWidth() / 2 - calculateWidth(13, billingName, pdfWidth) / 2,
 			148,
@@ -261,19 +281,23 @@ const Dashboard = (props) => {
 		doc.setTextColor('#000');
 		doc.setFontSize(10);
 
+		console.log('LENGHT', (7 - linvoiceNumber.toString().length) * '0' + linvoiceNumber.toString());
 		doc.text(
 			60 + 0 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '0003653', pdfWidth),
 			220,
-			'0003653',
+			'0'.repeat(7 - (linvoiceNumber + 1).toString().length).concat((linvoiceNumber + 1).toString()),
 			{
 				align: 'center'
 			}
 		);
 
+		var today = new Date();
+		var tomorrow = new Date();
+		tomorrow.setDate(today.getDate() + 1);
 		doc.text(
 			60 + 1 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', pdfWidth),
 			220,
-			'06 June 2019',
+			today.toDateString(),
 			{
 				align: 'center'
 			}
@@ -282,7 +306,7 @@ const Dashboard = (props) => {
 		doc.text(
 			60 + 2 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', pdfWidth),
 			220,
-			'06 June 2019',
+			tomorrow.toDateString(),
 			{
 				align: 'center'
 			}
@@ -290,7 +314,7 @@ const Dashboard = (props) => {
 		doc.text(
 			60 + 3 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '007733', pdfWidth),
 			220,
-			'007733',
+			'0'.repeat(6 - (lrefNumber + 1).toString().length).concat((lrefNumber + 1).toString()),
 			{
 				align: 'center'
 			}
@@ -340,6 +364,29 @@ const Dashboard = (props) => {
 			}
 		});
 
+		doc.setFontSize(11);
+		doc.setFontType('normal');
+		doc.text(
+			doc.internal.pageSize.getWidth() - 50,
+			currentHeight,
+			'Subtotal ' + '$' + calculateTotal().toFixed(2),
+			{
+				align: 'right'
+			}
+		);
+
+		doc.setFontType('bold');
+		doc.text(
+			doc.internal.pageSize.getWidth() - 50,
+			currentHeight + 15,
+			'Total ' + '$' + calculateTotal().toFixed(2),
+			{
+				align: 'right'
+			}
+		);
+
+		currentHeight += 20;
+
 		doc.setLineWidth(1);
 		doc.setDrawColor(221, 220, 220);
 		doc.line(
@@ -350,9 +397,11 @@ const Dashboard = (props) => {
 			'F'
 		);
 
+		doc.addImage(document.getElementById('img-qr-code'), 'PNG', 65, currentHeight - 20, 60, 60, 'da', 'FAST');
+		doc.setTextColor(secondaryColor);
 		doc.setFontSize(14);
 		doc.setFontType('bold');
-		console.log('PANTELIS', calculateWidth(14, 'HELLO Sir', doc));
+
 		doc.text(
 			doc.internal.pageSize.getWidth() - 60 - calculateWidth(14, '$' + calculateTotal().toFixed(2)),
 			currentHeight + 30,
@@ -373,7 +422,22 @@ const Dashboard = (props) => {
 			currentHeight + 40,
 			'F'
 		);
+		currentHeight += 50;
 
+		//ABOUT NOTES
+		if (notes.length > 0) {
+			doc.setTextColor('#000');
+			doc.setFontSize(11);
+			doc.setFontType('bold');
+			doc.text(50, currentHeight + 30, 'Notes', {
+				align: 'left'
+			});
+			doc.setFontType('normal');
+			doc.setFontSize(10);
+			let splitTitle = doc.splitTextToSize(notes, 350);
+			doc.text(50, currentHeight + 40, splitTitle);
+		}
+		//
 		doc.addImage(
 			document.getElementById('img-footer'),
 			'PNG',
@@ -403,33 +467,40 @@ const Dashboard = (props) => {
 	};
 
 	const checkPdf = (arr) => {
-		checkForDuplicatePdf()
-			.then((msg) => {
-				console.log(msg);
-				let file = createPDF(arr);
-				uploadPDF(file);
-			})
-			.catch((obj) => {
-				console.error(obj.error);
-				if (window.confirm('You already have a pdf with this name. Would you like to replace it ?')) {
+		if (notes.length > maxNoteCharacters) {
+			window.alert('Your notes have a lot of characters');
+		} else {
+			checkForDuplicatePdf()
+				.then((msg) => {
+					console.log('SUCESS', msg);
 					let file = createPDF(arr);
-					let fileToBeDeleted = database.ref(`/files/${props.uid}/invoices/${obj.id}`);
-					fileToBeDeleted.remove().then((val) => {
-						console.log('VAL', val);
-						uploadPDF(file);
-					});
-				} else {
-					//no
-				}
-			});
-	};
 
-	const showItems = () => {
-		console.log(items);
+					firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
+
+					firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
+
+					uploadPDF(file);
+				})
+				.catch((obj) => {
+					console.error(obj.error);
+					if (window.confirm('You already have a pdf with this name. Would you like to replace it ?')) {
+						let file = createPDF(arr);
+						let fileToBeDeleted = database.ref(`/files/${props.uid}/invoices/${obj.id}`);
+						fileToBeDeleted.remove().then((val) => {
+
+							firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
+							firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
+
+							uploadPDF(file);
+						});
+					} else {
+						//no
+					}
+				});
+		}
 	};
 
 	const calculateWidth = (fontSize, string, widthOfPdf = 1) => {
-		console.log(string, 'width', string.length * (fontSize / 1.618));
 		return string.length * (fontSize / 1.618) / widthOfPdf;
 	};
 
@@ -441,15 +512,16 @@ const Dashboard = (props) => {
 					<img id="img" width="100" height="100" src={creativedaylogo} alt="invisible" />
 					<img id="img-invoice" width="100" height="100" src={invoice} alt="invisible" />
 					<img id="img-footer" width="100" height="100" src={footer} alt="invisible" />
+					<img id="img-qr-code" width="100" height="100" src={QRcode} alt="invisible" />
 				</div>
-					<div style={{ display: 'flex', alignItems: 'center' }}>
-						<NavLink to="/dashboard">
-							<img src={arrowBox} width="30" height="30" />
-						</NavLink>
-						<div className="page-title" style={{ marginLeft: '1em' }}>
-							Client Info
-						</div>
+				<div style={{ display: 'flex', alignItems: 'center' }}>
+					<NavLink to="/dashboard">
+						<img src={arrowBox} width="30" height="30" />
+					</NavLink>
+					<div className="page-title" style={{ marginLeft: '1em' }}>
+						Client Info
 					</div>
+				</div>
 				<div className="client-info-inputs">
 					<div className="inputs">
 						<input
@@ -535,6 +607,26 @@ const Dashboard = (props) => {
 				</div>
 				<div className="client-total-bill">
 					<div>Total Balance ${calculateTotal().toFixed(2)}</div>
+				</div>
+				<div className="notes">
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							flexWrap: 'wrap'
+						}}
+					>
+						<div className="note-title">Write a few notes</div>
+						<div style={notes.length > maxNoteCharacters ? { color: '#ED4E58' } : {}}>
+							{notes.length}/{maxNoteCharacters}
+						</div>
+					</div>
+					<textarea
+						className={`notes-input ${notes.length > maxNoteCharacters ? 'error' : ''}`}
+						value={notes}
+						onChange={(e) => setNotes(e.target.value)}
+					/>
 				</div>
 			</form>
 		</div>

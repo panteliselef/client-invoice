@@ -40,7 +40,6 @@ const App = (props) => {
 	}, []);	
 	return (
 		<BrowserRouter>
-			{/* {state.isUserSignedIn ? <Redirect to="/dashboard" /> : <Redirect to="/" />} */}
 			<Switch>
 			<Route exact path="/login" render={(props)=>(
           <LimitedLoginPage {...props}/>
@@ -51,17 +50,22 @@ const App = (props) => {
 				<Route exact path="/signup" render={(props)=>(
           <LimitedSignUpPage {...props}/>
         )}/>
-				{/* <Route exact path="/" component={LoginPage} /> */}
-				{/* <Route exact path="/login" component={LoginPage} /> */}
-				{/* <Route exact path="/sign-up" component={SignupPage} /> */}
-				{/* <Route exact path="/dashboard" component={Dashboard} /> */}
-				{/* <Route exact path="/create-invoice" component={CreateInvoice} /> */}
 				<Route data={state} exact path="/dashboard" render={(props)=>(
           <ProtectedDashboard data={state} {...props}/>
         )}/>
 				<Route uid={state.signedInUserInfo.uid}  exact path="/create-invoice" render={(props)=>(
           <ProtectedEditor uid={state.signedInUserInfo.uid}  {...props}/>
         )}/>
+
+
+				{/* PATHS FOR TESTING */}
+
+				{/* <Route exact path="/" component={LoginPage} /> */}
+				{/* <Route exact path="/login" component={LoginPage} /> */}
+				{/* <Route exact path="/sign-up" component={SignupPage} /> */}
+				{/* <Route exact path="/dashboard" component={Dashboard} /> */}
+				{/* <Route exact path="/create-invoice" component={CreateInvoice} /> */}
+
 			</Switch>
 		</BrowserRouter>
 	);

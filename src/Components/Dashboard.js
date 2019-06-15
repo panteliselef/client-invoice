@@ -11,10 +11,12 @@ const Dashboard = (props) => {
 	const [ files, setFiles ] = useState([]);
 	const database = firebase.database();
 	const user = firebase.auth().currentUser;
-	const [displayName,setDisplayName] = useState('');
+	const [displayName,setDisplayName] = useState('...');
 	console.log('Props', props);
-	const firebaseFiles = database.ref(`/files/${props.data.signedInUserInfo.uid}/invoices`);
+	const firebaseFiles = database.ref(`/files/${ (props.data ) ?
+		props.data.signedInUserInfo.uid : "" }/invoices`);
 
+	
 	const [ isFetchingData, setIsFetchingData ] = useState(false);
 
 	useEffect(
@@ -36,11 +38,12 @@ const Dashboard = (props) => {
 				}
 			});
 
-			console.log("USER",user);
-			// setDisplayName(user.displayName);
+			
+			setDisplayName(props.data.signedInUserInfo.displayName);
 
 			return function cleanup() {
 				firebaseFiles.off();
+				setIsFetchingData(false);
 			};
 		},
 		[ user ]
@@ -88,9 +91,9 @@ const Dashboard = (props) => {
 			<Header />
 			<div className="dashboard">
 				<div className="page-title"> Dashboard</div>
-				{displayName !== '' && (
+				{/* {displayName !== '' && (
+				)} */}
 				<div className="page-subtitle"> Welcome, {displayName}</div>
-				)}
 				<NavLink to="/create-invoice">
 					<button className="btn-rounded">Create new Invoice</button>
 				</NavLink>

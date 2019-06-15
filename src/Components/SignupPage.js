@@ -3,27 +3,25 @@ import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/auth';
 import '../Assets/login-page.css';
+import { validateEmail } from '../Utils/utils';
 import { withRouter, NavLink } from 'react-router-dom';
+import RippledButton from './RippledButton';
 
 const SignupPage = (props) => {
-	const [ userEmail, setUserEmail ] = useState('panteliselef@outlook.com');
+	const [ userEmail, setUserEmail ] = useState(''); //panteliselef@outlook.com
 	const [ userPassword, setUserPassword ] = useState(''); //123456
 	const [ userFullName, setUserFullName ] = useState('');
 	const [ errorMessage, setErrorMessage ] = useState('');
 
 	const [ isSignUpAvailable, setSignUpAvailable ] = useState(false);
 
-	const [ secretPasscode, setSecretPasscode ] = useState('');
+	const [ secretPasscode, setSecretPasscode ] = useState('@#');
 
 	const user = firebase.auth().currentUser;
 	const database = firebase.database();
 	// const passcode = database.ref('/appInfo/secretPasscode');
 	const firebaseFiles = database.ref(`/files`);
 
-	const validateEmail = (email) => {
-		var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-		return re.test(email);
-	};
 	useEffect(
 		() => {
 			firebase.database().ref('/appInfo').on('value', (snapshot) => {
@@ -36,7 +34,12 @@ const SignupPage = (props) => {
 
 	const checkSecretPassCode = (e) => {
 		e.preventDefault();
-		if (secretPasscode === userPassword) setSignUpAvailable(true);
+		if (secretPasscode === userPassword) {
+			setErrorMessage('');
+			setSignUpAvailable(true);
+		} else {
+			setErrorMessage('secret password is incorrect or undefined by admin');
+		}
 		setUserPassword('');
 	};
 
@@ -63,7 +66,7 @@ const SignupPage = (props) => {
 		e.preventDefault();
 		console.log(userEmail, userPassword);
 
-		if (userEmail !== '' && userFullName !== '' && userPassword !== ''){
+		if (userEmail !== '' && userFullName !== '' && userPassword !== '') {
 			if (validateEmail(userEmail)) {
 				firebase
 					.auth()
@@ -71,24 +74,23 @@ const SignupPage = (props) => {
 					.then((data) => {
 						console.log('succes', data.user);
 						data.user.updateProfile({
-							displayName: userFullName,
+							displayName: userFullName
 						});
 						writeUserData(data.user);
-						// props.history.push('/dashboard');
 					})
 					.catch((err) => {
 						console.error(err);
 					});
 			} else {
-				setErrorMessage("Your email is invalid");
+				setErrorMessage('Your email is invalid');
 			}
-		}else {
-			setErrorMessage("Please fill all the required(*) fields");
+		} else {
+			setErrorMessage('Please fill all the required(*) fields');
 		}
 	};
 	return (
 		<div className="login-page">
-			{true ? (
+			{isSignUpAvailable ? (
 				<form className="sign-in">
 					<div className="welcome-msg">
 						<span role="img" aria-label="shh">
@@ -117,12 +119,11 @@ const SignupPage = (props) => {
 						placeholder=""
 						value={userPassword}
 					/>
-					<button className="submit" onClick={(e) => onSignUp(e)}>
+
+					<RippledButton onClick={(e) => onSignUp(e)} className="submit" color="#B7BFFF">
 						Sign Up
-					</button>
-					<div className="error-message">
-						{errorMessage}
-					</div>
+					</RippledButton>
+					<div className="error-message">{errorMessage}</div>
 					<div className="links">
 						<NavLink className="link" to="/login">
 							Already a member ?
@@ -144,9 +145,13 @@ const SignupPage = (props) => {
 						placeholder=""
 						value={userPassword}
 					/>
-					<button className="submit" onClick={(e) => checkSecretPassCode(e)}>
+					{/* <button className="submit" onClick={(e) => checkSecretPassCode(e)}>
 						Go to sign up Page
-					</button>
+					</button> */}
+					<RippledButton onClick={(e) => checkSecretPassCode(e)} className="submit" color="#B7BFFF">
+						Go to sign up Page
+					</RippledButton>
+					<div className="error-message">{errorMessage}</div>
 				</form>
 			)}
 		</div>
