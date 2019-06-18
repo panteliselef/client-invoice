@@ -4,12 +4,12 @@ import 'firebase/auth';
 import 'firebase/database';
 import { validateEmail } from '../Utils/utils';
 import RippledButton from '../Components/RippledButton';
-import '../Assets/login-page.css';
-import { NavLink, withRouter, Redirect } from 'react-router-dom';
+import '../Assets/styles/login-page.css';
+import { withRouter } from 'react-router-dom';
 
 const LoginPage = (props) => {
-	const [ userEmail, setUserEmail ] = useState(''); //panteliselef@gmail.com
-	const [ userPassword, setUserPassword ] = useState(''); //123456
+	const [ userEmail, setUserEmail ] = useState('');
+	const [ userPassword, setUserPassword ] = useState('');
 	const [ errorMessage, setErrorMessage ] = useState('');
 
 	const forgotPassword = () => {
@@ -19,7 +19,7 @@ const LoginPage = (props) => {
 				.sendPasswordResetEmail(userEmail)
 				.then(function() {
 					// Email sent.
-					alert('Check your emails');
+					alert("We've send you an email in order to reset your password ");
 				})
 				.catch(function(error) {
 					console.log(error);
@@ -57,6 +57,8 @@ const LoginPage = (props) => {
 					});
 			})
 			.catch(function(error) {
+				setErrorMessage(error.message);
+				console.error(error);
 				// Handle Errors here.
 				// var errorCode = error.code;
 				// var errorMessage = error.message;
@@ -94,8 +96,6 @@ const LoginPage = (props) => {
 						onClick={() => props.history.push('/signup')}
 						color="rgba(198, 175, 255, 1)"
 					>
-						{/* <NavLink to="signup">
-						</NavLink> */}
 						sign Up
 					</RippledButton>
 				</div>

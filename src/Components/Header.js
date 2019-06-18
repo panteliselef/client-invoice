@@ -1,17 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import firebase from 'firebase/app';
 import 'firebase/auth';
-import '../Assets/header.css';
+import '../Assets/styles/header.css';
 
-const Header = (props) => {
-	const user = firebase.auth().currentUser;
-	useEffect(
-		() => {
-			console.log('User', user);
-		},
-		[ user ]
-	);
-
+const Header = () => {
 	const logout = () => {
 		firebase
 			.auth()
@@ -23,7 +15,6 @@ const Header = (props) => {
 				// An error happened
 			});
 	};
-
 	return (
 		<div className="header">
 			<ul>

@@ -1,6 +1,6 @@
 // https://coolors.co/8c99ff-c6afff-b596ff-192466-fff4fa
-
 import Header from './Header';
+import '../Assets/styles/invoice-form.css';
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import firebase from 'firebase/app';
@@ -50,21 +50,6 @@ const Dashboard = (props) => {
 			description: "",
 			price:0
 		}
-		// {
-		// 	id: 1,
-		// 	description: 'This is a Test Description',
-		// 	price: 0.99
-		// },
-		// {
-		// 	id: 2,
-		// 	description: 'This is a Test Description',
-		// 	price: 20.0
-		// },
-		// {
-		// 	id: 3,
-		// 	description: 'This is a Test Description',
-		// 	price: 40.0
-		// }
 	]);
 
 	const [ nameOfPDF, setNameOfPDF ] = useState('');
@@ -93,7 +78,6 @@ const Dashboard = (props) => {
 		});
 		setItems(n);
 	};
-
 	const updateItemPrice = (item, value) => {
 		let n = items.map((it) => {
 			if (it.id === item.id) it.price = +value;
@@ -141,7 +125,6 @@ const Dashboard = (props) => {
 			function completed() {
 				document.getElementById('progress-bar-colored').style.backgroundColor = '#192466';
 				setUploadCompleted(true);
-				// Get metadata properties
 				storageRef
 					.getMetadata()
 					.then(function(metadata) {
@@ -149,7 +132,6 @@ const Dashboard = (props) => {
 					})
 					.catch(function(error) {
 						console.error(error);
-						// Uh-oh, an error occurred!
 					});
 			}
 		);
@@ -214,6 +196,7 @@ const Dashboard = (props) => {
 		// let billingName = clientInfo.name || predefined.name;
 		// let billingAddress = clientInfo.address || predefined.address;
 		// let billingCity = clientInfo.city || predefined.city;
+		
 		let billingName = clientInfo.name || ' ';
 		let billingAddress = clientInfo.address || ' ';
 		let billingCity = clientInfo.city || ' ';
@@ -291,8 +274,8 @@ const Dashboard = (props) => {
 			}
 		);
 
-		var today = new Date();
-		var tomorrow = new Date();
+		let today = new Date();
+		let tomorrow = new Date();
 		tomorrow.setDate(today.getDate() + 1);
 		doc.text(
 			60 + 1 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', pdfWidth),
@@ -341,7 +324,6 @@ const Dashboard = (props) => {
 		doc.setDrawColor(221, 220, 220);
 		doc.line(50, 290, pdfWidth - 50, 290, 'F');
 
-		///
 
 		let currentHeight = 305;
 		arrayOfItems.forEach((item) => {
@@ -369,7 +351,7 @@ const Dashboard = (props) => {
 		doc.text(
 			doc.internal.pageSize.getWidth() - 50,
 			currentHeight,
-			'Subtotal ' + '$' + calculateTotal().toFixed(2),
+			`Subtotal $  ${calculateTotal().toFixed(2)}`,
 			{
 				align: 'right'
 			}
@@ -379,7 +361,7 @@ const Dashboard = (props) => {
 		doc.text(
 			doc.internal.pageSize.getWidth() - 50,
 			currentHeight + 15,
-			'Total ' + '$' + calculateTotal().toFixed(2),
+			`Total $ ${calculateTotal().toFixed(2)}`,
 			{
 				align: 'right'
 			}
@@ -460,8 +442,6 @@ const Dashboard = (props) => {
 				charSpace: 2
 			}
 		);
-		// console.log(doc.output('datauristring', 'filename.pdf'));
-		// let file = doc.save('one.pdf');
 		let file = doc.output('blob');
 		return file;
 	};
@@ -516,7 +496,7 @@ const Dashboard = (props) => {
 				</div>
 				<div style={{ display: 'flex', alignItems: 'center' }}>
 					<NavLink to="/dashboard">
-						<img src={arrowBox} width="30" height="30" />
+						<img src={arrowBox} width="30" height="30" alt='go-back-arrow' />
 					</NavLink>
 					<div className="page-title" style={{ marginLeft: '1em' }}>
 						Client Info

@@ -4,12 +4,7 @@ const RippledButton= (props)=> {
   const [circles,setCircles] = useState([]);
   const createRipple=(e)=> {
     e.preventDefault();
-    // e.persist();
-    console.log("ClientY",e.clientY)
-    // console.log("Pos",e.clientX,e.clientY);
-    console.log("Top",e.target.offsetTop);
     let d = Math.max(e.target.offsetWidth,e.target.offsetHeight);
-    console.log("ClientY-Top",Math.abs(e.clientY-e.target.offsetTop))
     let circle = {
       key: Date.now(),
       size: d,
@@ -23,8 +18,6 @@ const RippledButton= (props)=> {
     createRipple(e);
     props.onClick(e);
   }
-
-  console.log(props); 
 
   return(
     <button onMouseLeave={()=>setTimeout(()=>setCircles([]),500)} onClick={(e)=>actionWithRipple(e)} className={`rippled ${props.className}`}>

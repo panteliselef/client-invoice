@@ -10,17 +10,17 @@ import SignupPage from './Components/SignupPage';
 import Dashboard from './Components/Dashboard';
 import CreateInvoice from './Components/CreateInvoice';
 import { initState, mainReducer } from './Reducers/mainReducer';
-
 import withAuthProtection from './HOC/withAuthProtection';
 import afterAuthCompleted from './HOC/afterAuthCompleted';
+
+
 const ProtectedDashboard = withAuthProtection('/login')(Dashboard)
 const ProtectedEditor = withAuthProtection('/login')(CreateInvoice)
 const LimitedLoginPage = afterAuthCompleted('/dashboard')(LoginPage)
 const LimitedSignUpPage = afterAuthCompleted('/dashboard')(SignupPage)
 firebase.initializeApp(firebaseConfig);
 
-const App = (props) => {
-	const database = firebase.database();
+const App = () => {
 	const [ state, dispatch ] = useReducer(mainReducer, initState);
 
 	useEffect(() => {
@@ -28,7 +28,6 @@ const App = (props) => {
 			console.log(user);
 			if (user) {
 				console.log('Signed In');
-				
 				dispatch({ type: 'UPDATED_USER_INFO', payload: user });
 				dispatch({ type: 'UPDATED_USER_SIGNED_IN', payload: true });
 			} else {

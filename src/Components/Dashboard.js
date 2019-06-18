@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, withRouter } from 'react-router-dom';
-import firebase, { storage } from 'firebase/app';
+import firebase from 'firebase/app';
+import {bytesToSize} from '../Utils/utils';
 import Header from '../Components/Header';
 import LoadingAnimation from '../Components/LoadingAnimation';
 import 'firebase/auth';
 import 'firebase/database';
 import 'firebase/storage';
-import '../Assets/dashboard.css';
+import '../Assets/styles/dashboard.css';
 const Dashboard = (props) => {
-	const [ files, setFiles ] = useState([]);
-	const database = firebase.database();
-	const user = firebase.auth().currentUser;
-	const [displayName,setDisplayName] = useState('...');
-	console.log('Props', props);
+	const [ isFetchingData, setIsFetchingData ] = useState(false); // hook: for displaying loading spinner while fetching data
+	const [ files, setFiles ] = useState([]); // hook: array of user's files
+	const [displayName,setDisplayName] = useState('...'); // hook: display name of user 
+	const database = firebase.database(); // ref: firebase.database
+	const user = firebase.auth().currentUser; // ref: firebase.user
 	const firebaseFiles = database.ref(`/files/${ (props.data ) ?
-		props.data.signedInUserInfo.uid : "" }/invoices`);
+		props.data.signedInUserInfo.uid : "" }/invoices`); // ref: firebase database files path
 
-	
-	const [ isFetchingData, setIsFetchingData ] = useState(false);
 
 	useEffect(
 		() => {
@@ -48,14 +47,9 @@ const Dashboard = (props) => {
 		},
 		[ user ]
 	);
-	const bytesToSize = (bytes) => {
-		var sizes = [ 'Bytes', 'KB', 'MB', 'GB', 'TB' ];
-		if (bytes === 0) return '0 Byte';
-		var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-		return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
-	};
 
-	const downloadPDF = (event, pdfName) => {
+
+	const openPDF = (event, pdfName) => {
 		event.preventDefault();
 		console.log(pdfName);
 		let pdfRef = firebase.storage().ref(`/${user.uid}/invoices/${pdfName}`);
@@ -91,8 +85,6 @@ const Dashboard = (props) => {
 			<Header />
 			<div className="dashboard">
 				<div className="page-title"> Dashboard</div>
-				{/* {displayName !== '' && (
-				)} */}
 				<div className="page-subtitle"> Welcome, {displayName}</div>
 				<NavLink to="/create-invoice">
 					<button className="btn-rounded">Create new Invoice</button>
@@ -113,11 +105,9 @@ const Dashboard = (props) => {
 							return (
 								<div key={id} className="entry">
 									<div>{data.name}</div>
-									{/* <div>{`${updatedData.getFullYear()}-${updatedData.getMonth() +
-										1}-${updatedData.getDate()}__ ${updatedData.toLocaleString()}`}</div> */}
 									<div>{updatedData.toLocaleString()}</div>
 									<div>{bytesToSize(data.size)}</div>
-									<div onClick={(e) => downloadPDF(e, data.name)}>Open</div>
+									<div onClick={(e) => openPDF(e, data.name)}>Open</div>
 								</div>
 							);
 						})

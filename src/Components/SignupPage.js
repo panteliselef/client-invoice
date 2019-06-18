@@ -2,25 +2,21 @@ import React, { useState, useEffect } from 'react';
 import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/auth';
-import '../Assets/login-page.css';
+import '../Assets/styles/login-page.css';
 import { validateEmail } from '../Utils/utils';
 import { withRouter, NavLink } from 'react-router-dom';
 import RippledButton from './RippledButton';
 
 const SignupPage = (props) => {
-	const [ userEmail, setUserEmail ] = useState(''); //panteliselef@outlook.com
-	const [ userPassword, setUserPassword ] = useState(''); //123456
+	const [ userEmail, setUserEmail ] = useState('');
+	const [ userPassword, setUserPassword ] = useState('');
 	const [ userFullName, setUserFullName ] = useState('');
 	const [ errorMessage, setErrorMessage ] = useState('');
-
 	const [ isSignUpAvailable, setSignUpAvailable ] = useState(false);
-
 	const [ secretPasscode, setSecretPasscode ] = useState('@#');
 
 	const user = firebase.auth().currentUser;
 	const database = firebase.database();
-	// const passcode = database.ref('/appInfo/secretPasscode');
-	const firebaseFiles = database.ref(`/files`);
 
 	useEffect(
 		() => {
@@ -145,9 +141,6 @@ const SignupPage = (props) => {
 						placeholder=""
 						value={userPassword}
 					/>
-					{/* <button className="submit" onClick={(e) => checkSecretPassCode(e)}>
-						Go to sign up Page
-					</button> */}
 					<RippledButton onClick={(e) => checkSecretPassCode(e)} className="submit" color="#B7BFFF">
 						Go to sign up Page
 					</RippledButton>

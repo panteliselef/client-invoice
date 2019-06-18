@@ -6,7 +6,7 @@ div.dashboard-container {
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: bottom center;
-	background-image: url('./bg-white.svg');
+	background-image: url('../bg-white.svg');
 	min-height: 600px;
 	padding: 1em 0;
 }

@@ -7,7 +7,7 @@ div.login-page {
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: bottom center;
-	background-image: url('./bg.svg');
+	background-image: url('../bg.svg');
 	min-height: 100vh;
 	padding: 1em 0;
 }
