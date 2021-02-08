@@ -18,50 +18,60 @@ div.dashboard-container h1 {
 div.dashboard {
 	font-size: 1rem;
 	width: 90%;
-	max-width: 820px;
+	max-width: 1080px;
 	margin: auto;
 }
 
 div.dashboard .files-table {
 	background-color: #fff;
-	margin-top: 2em;
-	border-radius: 20px;
+	margin-top: 2rem;
+	border-radius: 8px;
 	display: grid;
 	overflow: hidden;
-	box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
+	box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .18);
 }
 
 div.dashboard .files-table .entry,
 div.dashboard .files-table .entry-first {
-	cursor: pointer;
+	/* cursor: pointer; */
 	/* margin: 0em 1em; */
 	overflow: hidden;
 	align-items: center;
 	min-height: 20px;
 	background-clip: border-box;
 	border-top: 1px solid #c6afff;
-	padding: 1em 1.2em;
+	font-size: .9rem;
 	display: grid;
-	grid-template-columns: auto 10em 4em 4em;
-	grid-column-gap: .5em;
+	grid-template-columns: auto 15rem 9rem 9rem;
+	grid-column-gap: .5rem;
 }
 div.dashboard .files-table .entry div {
 	color: #192466;
+	padding: 1em;
+}
+
+div.dashboard .files-table .entry .number {
+	text-align: right;
+}
+div.dashboard .files-table .entry .link {
+	cursor: pointer;
 }
 div.dashboard .files-table .entry-first div {
 	color: #192466;
 	text-transform: capitalize;
-	font-weight: bold;
+	font-weight: 500;
+	padding: .6rem 1rem;
 }
 div.dashboard .files-table .entry-first {
 	border: none;
 	cursor: initial;
 	margin: 0;
-	background-color: #c6afff;
+	font-size: .825rem;
+	background-color: #c6afffcc;
 }
 
 div.dashboard .files-table .entry:hover {
-	background-color: rgba(198, 175, 255, 0.3);
+	background-color: rgba(198, 175, 255, 0.2);
 }
 
 div.dashboard .files-table .entry:nth-child(2) {

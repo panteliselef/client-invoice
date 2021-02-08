@@ -49,18 +49,18 @@ const Dashboard = (props) => {
 	);
 
 
-	const openPDF = (event, pdfName) => {
+	const openPDF = async (event, pdfName) => {
 		event.preventDefault();
 		console.log(pdfName);
 		let pdfRef = firebase.storage().ref(`/${user.uid}/invoices/${pdfName}`);
-		pdfRef
-			.getDownloadURL()
-			.then((url) => {
-				console.log(url);
-				window.location = url;
-				console.log('END');
-			})
-			.catch((error) => {
+
+		return new Promise(async (resolve,reject) => {
+			try{
+				const url = await pdfRef.getDownloadURL();
+				var win = window.open(url, '_blank');
+				win.focus();
+				resolve(url)
+			}catch(error) {
 				console.error(error);
 				switch (error.code) {
 					case 'storage/object-not-found':
@@ -77,8 +77,12 @@ const Dashboard = (props) => {
 					case 'storage/unknown':
 						// Unknown error occurred, inspect the server response
 						break;
+					default: 
+						// do nothing
 				}
-			});
+				reject(error.code)
+			}
+		})
 	};
 	return (
 		<div className="container">
@@ -87,7 +91,7 @@ const Dashboard = (props) => {
 				<div className="page-title"> Dashboard</div>
 				<div className="page-subtitle"> Welcome, {displayName}</div>
 				<NavLink to="/create-invoice">
-					<button className="btn-rounded">Create new Invoice</button>
+					<div className="btn-rounded" style={{marginLeft:0, minWidth:'140px'}}>New Invoice</div>
 				</NavLink>
 				<div className="files-table">
 					<div className="entry-first">
@@ -106,8 +110,8 @@ const Dashboard = (props) => {
 								<div key={id} className="entry">
 									<div>{data.name}</div>
 									<div>{updatedData.toLocaleString()}</div>
-									<div>{bytesToSize(data.size)}</div>
-									<div onClick={(e) => openPDF(e, data.name)}>Open</div>
+									<div className="number">{bytesToSize(data.size)}</div>
+									<div className="link" onClick={async (e) => await openPDF(e, data.name)}>Open</div>
 								</div>
 							);
 						})

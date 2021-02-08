@@ -9,18 +9,22 @@ import 'firebase/auth';
 import 'firebase/database';
 import { NavLink } from 'react-router-dom';
 import creativedaylogo from '../Assets/creativedaylogo.png';
+
+import ExpansionPanel from './ExpansionPanel/ExpansionPanel';
 import invoice from '../Assets/invoice.png';
 import footer from '../Assets/footer.png';
 import QRcode from '../Assets/QRcode.png';
 import arrowBox from '../Assets/arrow-left-box.svg';
+
+
 const Dashboard = (props) => {
 	const database = firebase.database();
 
-	const [ maxNoteCharacters, setMaxCharacters ] = useState(650);
-	const [ lrefNumber, setlRefNumber ] = useState('');
-	const [ linvoiceNumber, setlInvoiceNumber ] = useState('');
+	const maxNoteCharacters = 650;
+	const [lrefNumber, setlRefNumber] = useState('');
+	const [linvoiceNumber, setlInvoiceNumber] = useState('');
 	const firebaseFiles = database.ref(`/files/${props.uid}/invoices`);
-	const [ clientInfo, setClientInfo ] = useState({
+	const [clientInfo, setClientInfo] = useState({
 		name: '',
 		address: '',
 		city: ''
@@ -44,19 +48,24 @@ const Dashboard = (props) => {
 		filename: 'test'
 	};
 
-	const [ items, setItems ] = useState([
+	const [items, setItems] = useState([
 		{
-			id:1,
+			id: 1,
 			description: "",
-			price:0
+			price: 0,
+			quantity: 1
 		}
 	]);
 
-	const [ nameOfPDF, setNameOfPDF ] = useState('');
-	const [ notes, setNotes ] = useState('');
-	const [ readyToUpload, setReadyToUpload ] = useState(false);
-	const [ uploadedPercentage, setUploadedPercentage ] = useState(0);
-	const [ uploadCompleted, setUploadCompleted ] = useState(false);
+	const [nameOfPDF, setNameOfPDF] = useState('');
+	const [notes, setNotes] = useState('');
+	const [readyToUpload, setReadyToUpload] = useState(false);
+	const [uploadedPercentage, setUploadedPercentage] = useState(0);
+	const [uploadCompleted, setUploadCompleted] = useState(false);
+
+	const [feesPercent, setFeesPercent] = useState(0);
+	const [discountPercent, setDiscountPercent] = useState(0);
+
 
 	const checkForDuplicatePdf = () => {
 		return new Promise((resolve, reject) => {
@@ -78,6 +87,13 @@ const Dashboard = (props) => {
 		});
 		setItems(n);
 	};
+	const updateItemQuantity = (item, value) => {
+		let n = items.map((it) => {
+			if (it.id === item.id) it.quantity = +value;
+			return it;
+		});
+		setItems(n);
+	};
 	const updateItemPrice = (item, value) => {
 		let n = items.map((it) => {
 			if (it.id === item.id) it.price = +value;
@@ -87,7 +103,7 @@ const Dashboard = (props) => {
 	};
 	const calculateTotal = () => {
 		return items.reduce((acc, val) => {
-			return acc + val.price;
+			return acc + (val.price * val.quantity);
 		}, 0);
 	};
 
@@ -127,10 +143,10 @@ const Dashboard = (props) => {
 				setUploadCompleted(true);
 				storageRef
 					.getMetadata()
-					.then(function(metadata) {
+					.then(function (metadata) {
 						uploadPDFToDatabase(metadata);
 					})
-					.catch(function(error) {
+					.catch(function (error) {
 						console.error(error);
 					});
 			}
@@ -148,7 +164,8 @@ const Dashboard = (props) => {
 			{
 				id: items.length + 1,
 				description: '',
-				price: 0
+				price: 0,
+				quantity: 1
 			}
 		]);
 	};
@@ -196,7 +213,7 @@ const Dashboard = (props) => {
 		// let billingName = clientInfo.name || predefined.name;
 		// let billingAddress = clientInfo.address || predefined.address;
 		// let billingCity = clientInfo.city || predefined.city;
-		
+
 		let billingName = clientInfo.name || ' ';
 		let billingAddress = clientInfo.address || ' ';
 		let billingCity = clientInfo.city || ' ';
@@ -485,7 +502,10 @@ const Dashboard = (props) => {
 	};
 
 	return (
-		<div className="container">
+		<div className="container"
+			style={{ width: '100%' }}
+		// style={{display:'flex',alignItems:'center',flexDirection:'column'}}
+		>
 			<Header />
 			<form name="invoice-form" className="invoice-form">
 				<div style={{ display: 'none' }}>
@@ -536,8 +556,8 @@ const Dashboard = (props) => {
 								<NavLink to="/dashboard">Completed</NavLink>
 							</div>
 						) : (
-							<div>Uploading</div>
-						)}
+								<div>Uploading</div>
+							)}
 
 						<div className="progress-bar" style={{ marginRight: '2em' }}>
 							<div style={{ width: uploadedPercentage }} id="progress-bar-colored" />
@@ -558,6 +578,7 @@ const Dashboard = (props) => {
 					<div className="entry-title">
 						<div>#</div>
 						<div>Item Description</div>
+						<div>Quantity</div>
 						<div>Price</div>
 					</div>
 					{items.map((item) => {
@@ -575,8 +596,17 @@ const Dashboard = (props) => {
 								<div>
 									<input
 										type="number"
+										value={item.quantity}
+										placeholder="Qnt"
+										onChange={(e) => updateItemQuantity(item, e.target.value)}
+										pattern="[0-9]*"
+									/>
+								</div>
+								<div>
+									<input
+										type="number"
 										value={item.price}
-										placeholder="item name"
+										placeholder="price"
 										onChange={(e) => updateItemPrice(item, e.target.value)}
 										pattern="[0-9]*"
 									/>
@@ -586,8 +616,57 @@ const Dashboard = (props) => {
 					})}
 				</div>
 				<div className="client-total-bill">
-					<div>Total Balance ${calculateTotal().toFixed(2)}</div>
+					<div>Sub Total ${calculateTotal().toFixed(2)}</div>
+
+
 				</div>
+
+
+
+
+
+
+
+				<ExpansionPanel isOpen={true} title="Taxes">
+
+				<div style={{
+						width: '400px',
+						display: 'grid',
+						gridTemplateColumns: '1fr 1fr',
+						alignItems: 'center',
+						gap: '10px'
+
+					}}> 
+						<div style={{
+							textAlign: 'right',
+							fontWeight: 'bold'
+						}}>
+							Fees %
+						</div>
+						<input className="invoice-input"
+							type="number"
+							value={feesPercent}
+							onChange={(e) => setFeesPercent(+e.target.value)}
+							pattern="[0-9]*"
+						/> 
+
+
+
+						<div style={{
+							textAlign: 'right',
+							fontWeight: 'bold'
+						}}>
+							Discount %
+						</div>
+						<input className="invoice-input"
+							type="number"
+							value={discountPercent}
+							onChange={(e) => setDiscountPercent(+e.target.value)}
+							pattern="[0-9]*"
+						/> 
+				</div>
+
+				</ExpansionPanel>
 				<div className="notes">
 					<div
 						style={{

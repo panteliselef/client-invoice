@@ -20,5 +20,14 @@ export const mainReducer = (state, action) => {
 				isUserSignedIn: action.payload
 			};
 		}
+		default: {
+			return;
+		}
 	}
 };
+
+
+export default {
+	initState,
+	mainReducer
+}

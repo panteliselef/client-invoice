@@ -1,10 +1,16 @@
+form.invoice-form {
+	font-size: 1rem;
+	width: 90%;
+	max-width: 940px;
+	margin: auto;
+}
+
 form.invoice-form .item-description-table .entry,
 form.invoice-form .item-description-table .entry-title {
 	display: grid;
-	grid-template-columns: 20px auto 4em;
+	grid-template-columns: 20px auto 8rem 8rem;
 	grid-column-gap: .5em;
 	padding: .7em 0em;
-	margin: 0em 1em;
 	overflow: hidden;
 	align-items: center;
 	min-height: 20px;
@@ -26,6 +32,7 @@ form.invoice-form .item-description-table {
 	border: 1px solid transparent;
 	border-radius: 10px;
 	display: grid;
+	width: 100%;
 }
 
 form.invoice-form .client-info-inputs {
@@ -107,7 +114,7 @@ form.invoice-form .client-total-bill {
 	margin-bottom: 0em;
 }
 form.invoice-form .button {
-	margin: 1em;
+	margin: 1em 0;
 	text-transform: capitalize;
 	background-color: #192466;
 	box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
@@ -118,13 +125,6 @@ form.invoice-form .button {
 	min-width: 6em;
 	text-align: center;
 	cursor: pointer;
-}
-
-form.invoice-form {
-	font-size: 1rem;
-	width: 90%;
-	max-width: 820px;
-	margin: auto;
 }
 
 form.invoice-form input {
@@ -162,7 +162,9 @@ form.invoice-form .input-with-label {
 	align-items: center;
 }
 
-form.invoice-form .item-description-table .entry input {
+form.invoice-form .item-description-table .entry input,
+.invoice-input
+{
 	outline: none;
 	padding: .7em 0em;
 	text-indent: 1em;
@@ -178,9 +180,9 @@ form.invoice-form .item-description-table .entry input:focus {
 }
 
 form.invoice-form .notes {
-	width: 95%;
-  margin: auto;
-  position: relative;
+	width: 100%;
+	margin: auto;
+	position: relative;
 }
 form.invoice-form .notes .note-title {
 	color: #8c99ff;
@@ -190,9 +192,9 @@ form.invoice-form .notes .note-title {
 }
 form.invoice-form .notes textarea.notes-input {
 	width: calc(100% - 2em);
-  height: 20vw;
-  max-height: 10em;
-  text-indent: 0;
+	height: 20vw;
+	max-height: 10em;
+	text-indent: 0;
 	appearance: none;
 	border: none;
 	background-color: rgb(236, 228, 255, .9);
@@ -201,8 +203,9 @@ form.invoice-form .notes textarea.notes-input {
 	outline: none;
 	resize: none;
 	margin-bottom: 6rem;
-  font-size: 1rem;
-  padding-bottom: 2em;
+	font-size: 1rem;
+	padding-bottom: 2em;
+	font-family: 'Roboto',sans-serif;
 }
 form.invoice-form .notes textarea.notes-input.error{
   background-color:  #ED4E58;

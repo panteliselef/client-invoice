@@ -1,0 +1,40 @@
+.expansion{
+    padding: .5rem;
+    border-top: 1px solid #b596ff;
+    border-bottom: 1px solid #b596ff;
+    display: flex;
+    flex-direction: column;
+}
+
+.expansion .expansion-header {
+    display: flex;
+    align-items: center;
+}
+
+
+.expansion p.title {
+    font-size: .9rem;
+    margin: 0;
+    margin-left: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.expansion svg {
+    fill: #192466;
+    cursor: pointer;
+}
+
+.expansion .expansion-body {
+    margin-top: 1rem;
+    margin-left: 2.5rem;
+    /* width: 200px;
+    height: 200px; */
+    display: none;
+    /* background-color: red; */
+}
+
+.expansion .expansion-body.active  {
+    display: block;
+}
