@@ -24,7 +24,7 @@ input {
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: bottom center;
-	/* background-image: url('./Assets/bg-white.svg'); */
+	background-image: url('./Assets/bg-white.svg');
 	min-height: 100vh;
 }
 .btn-rounded {

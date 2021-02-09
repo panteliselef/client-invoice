@@ -106,11 +106,12 @@ form.invoice-form .button-area a {
 
 form.invoice-form .client-total-bill {
 	display: flex;
+	flex-direction: column;
 	width: calc(100% - 2rem);
 	justify-content: flex-end;
-	align-items: center;
+	align-items: flex-end;
 	margin: 1rem;
-	font-size: 2em;
+	/* font-size: 2em; */
 	margin-bottom: 0em;
 }
 form.invoice-form .button {
