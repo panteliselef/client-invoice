@@ -122,55 +122,67 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, refNumber,
     doc.setFont('helvetica');
     doc.setTextColor('#000');
     doc.setFontSize(7);
-    doc.text('Kralja Milutina 23/23', marginLeftPage, marginTopPage);
+
+    // Address
+    doc.setFontType('bold');
+    doc.text('Address:', marginLeftPage, marginTopPage);
+    doc.setFontType('normal');
+    doc.text('Kralja Milutina 23/23', marginLeftPage + 25, marginTopPage);
+
+    // City
     doc.text('Belgrade, Serbia.', marginLeftPage, marginTopPage + 10);
 
+    // VAT No
+    doc.setFontType('bold');
+    doc.text('VAT No:', marginLeftPage, marginTopPage + 20);
+    doc.setFontType('normal');
+    doc.text('112337268', marginLeftPage + 25, marginTopPage + 20);
+
+    // Reg No
+    doc.setFontType('bold');
+    doc.text('Reg No:', marginLeftPage, marginTopPage + 30);
+    doc.setFontType('normal');
+    doc.text('66036103', marginLeftPage + 25, marginTopPage + 30);
 
     // Phone 
     doc.setFontType('bold');
-    doc.text('Phone:', marginLeftPage, marginTopPage + 20);
+    doc.text('Phone:', marginLeftPage, marginTopPage + 40);
     doc.setFontType('normal');
-    doc.text('+38162456234', marginLeftPage + 25, marginTopPage + 20);
+    doc.text('+38162456234', marginLeftPage + 25, marginTopPage + 40);
 
 
     // Email
     doc.setFontType('bold');
-    doc.text('Email:', marginLeftPage, marginTopPage + 30);
+    doc.text('Email:', marginLeftPage, marginTopPage + 50);
     doc.setFontType('normal');
-    doc.text('hi@two.rs', marginLeftPage + 25, marginTopPage + 30);
+    doc.text('hi@two.rs', marginLeftPage + 25, marginTopPage + 50);
 
     // Website
     doc.setFontType('bold');
-    doc.text('Website:', marginLeftPage, marginTopPage + 40);
+    doc.text('Website:', marginLeftPage, marginTopPage + 60);
     doc.setFontType('normal');
-    doc.text('www.two.rs', marginLeftPage + 25, marginTopPage + 40);
+    doc.text('www.two.rs', marginLeftPage + 25, marginTopPage + 60);
 
     // Date
     const today = new Date();
     doc.setFontType('bold');
-    doc.text('Date Issued:', marginLeftPage, marginTopPage + 60);
+    doc.text('Date Issued:', marginLeftPage, marginTopPage + 70);
     doc.setFontType('normal');
-    doc.text(today.toDateString(), marginLeftPage + 35, marginTopPage + 60);
+    doc.text(today.toDateString(), marginLeftPage + 35, marginTopPage + 70);
 
     // Date
     const todayPlus5 = new Date();
     todayPlus5.setDate(todayPlus5.getDate() + 5);
     doc.setFontType('bold');
-    doc.text('Date Issued:', marginLeftPage, marginTopPage + 70);
+    doc.text('Due Date:', marginLeftPage, marginTopPage + 80);
     doc.setFontType('normal');
-    doc.text(todayPlus5.toDateString(), marginLeftPage + 35, marginTopPage + 70);
+    doc.text(todayPlus5.toDateString(), marginLeftPage + 35, marginTopPage + 80);
 
     // Invoice Number
     doc.setFontType('bold');
-    doc.text('Invoice #:', marginLeftPage, marginTopPage + 80);
+    doc.text('Invoice #:', marginLeftPage, marginTopPage + 90);
     doc.setFontType('normal');
-    doc.text('0'.repeat(7 - (invoiceNumber + 1).toString().length).concat((invoiceNumber + 1).toString()), marginLeftPage + 35, marginTopPage + 80);
-
-    // Reference Number
-    doc.setFontType('bold');
-    doc.text('Reference #:', marginLeftPage, marginTopPage + 90);
-    doc.setFontType('normal');
-    doc.text('0'.repeat(6 - (refNumber + 1).toString().length).concat((refNumber + 1).toString()), marginLeftPage + 35, marginTopPage + 90);
+    doc.text('0'.repeat(3 - (invoiceNumber + 1).toString().length).concat((invoiceNumber + 1).toString()), marginLeftPage + 35, marginTopPage + 90);
 
     const originalLogoDim = {
         w: 1000,

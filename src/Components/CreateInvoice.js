@@ -181,6 +181,7 @@ const Dashboard = (props) => {
 		invoiceData.invoiceNumber = linvoiceNumber;
 		invoiceData.currency = activeCurrency;
 
+
 		checkForDuplicatePdf()
 			.then((msg) => {
 				console.log('SUCESS', msg);
