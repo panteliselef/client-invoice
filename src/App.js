@@ -1,60 +1,74 @@
 import React, { useReducer, useEffect } from 'react';
-import './App.css';
-import { BrowserRouter, Route, Switch} from 'react-router-dom';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+
+// Firebase
 import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/auth';
 import { firebaseConfig } from './firebaseConfig';
+
+
+// Components
 import LoginPage from './Components/LoginPage';
 import SignupPage from './Components/SignupPage';
 import Dashboard from './Components/Dashboard';
 import CreateInvoice from './Components/CreateInvoice';
-import { initState, mainReducer } from './Reducers/mainReducer';
+
+// HOC
 import withAuthProtection from './HOC/withAuthProtection';
 import afterAuthCompleted from './HOC/afterAuthCompleted';
 
+// Reducer
+import { initState, mainReducer } from './Reducers/mainReducer';
+import { actions } from './Actions/mainActions'
+
+// CSS
+import './App.css';
 
 const ProtectedDashboard = withAuthProtection('/login')(Dashboard)
 const ProtectedEditor = withAuthProtection('/login')(CreateInvoice)
 const LimitedLoginPage = afterAuthCompleted('/dashboard')(LoginPage)
 const LimitedSignUpPage = afterAuthCompleted('/dashboard')(SignupPage)
+
+// initialize firebase
 firebase.initializeApp(firebaseConfig);
 
 const App = () => {
-	const [ state, dispatch ] = useReducer(mainReducer, initState);
+	const [globalState, dispatch] = useReducer(mainReducer, initState);
 
 	useEffect(() => {
-		firebase.auth().onAuthStateChanged(function(user) {
+		firebase.auth().onAuthStateChanged(function (user) {
 			console.log(user);
 			if (user) {
 				console.log('Signed In');
-				dispatch({ type: 'UPDATED_USER_INFO', payload: user });
-				dispatch({ type: 'UPDATED_USER_SIGNED_IN', payload: true });
+				dispatch({ type: actions.UPDATED_USER_INFO, payload: user });
+				dispatch({ type: actions.UPDATED_USER_SIGNED_IN, payload: true });
 			} else {
 				console.log('no');
-				dispatch({ type: 'UPDATED_USER_INFO', payload: {} });
-				dispatch({ type: 'UPDATED_USER_SIGNED_IN', payload: false });
+				dispatch({ type: actions.UPDATED_USER_INFO, payload: {} });
+				dispatch({ type: actions.UPDATED_USER_SIGNED_IN, payload: false });
 			}
 		});
-	}, []);	
+	}, []);
+	
 	return (
 		<BrowserRouter>
 			<Switch>
-			<Route exact path="/login" render={(props)=>(
-          <LimitedLoginPage {...props}/>
-        )}/>
-				<Route exact path="/" render={(props)=>(
-          <LimitedLoginPage {...props}/>
-        )}/>
-				<Route exact path="/signup" render={(props)=>(
-          <LimitedSignUpPage {...props}/>
-        )}/>
-				<Route data={state} exact path="/dashboard" render={(props)=>(
-          <ProtectedDashboard data={state} {...props}/>
-        )}/>
-				<Route uid={state.signedInUserInfo.uid}  exact path="/create-invoice" render={(props)=>(
-          <ProtectedEditor uid={state.signedInUserInfo.uid}  {...props}/>
-        )}/>
+				<Route exact path="/login" render={(props) => (
+					<LimitedLoginPage {...props} />
+				)} />
+				<Route exact path="/" render={(props) => (
+					<LimitedLoginPage {...props} />
+				)} />
+				<Route exact path="/signup" render={(props) => (
+					<LimitedSignUpPage {...props} />
+				)} />
+				<Route data={globalState} exact path="/dashboard" render={(props) => (
+					<ProtectedDashboard globalState={globalState} {...props} />
+				)} />
+				<Route uid={globalState.signedInUserInfo.uid} exact path="/create-invoice" render={(props) => (
+					<ProtectedEditor uid={globalState.signedInUserInfo.uid}  {...props} />
+				)} />
 
 
 				{/* PATHS FOR TESTING */}

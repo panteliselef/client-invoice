@@ -44,3 +44,10 @@ input {
 	cursor: pointer;
 	font-size: 1em;
 }
+
+
+@media screen and (max-width:600px) {
+	.container {
+		background-image: unset;
+	}
+}

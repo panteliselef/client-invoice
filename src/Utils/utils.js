@@ -9,3 +9,37 @@ export const bytesToSize = (bytes) => {
 	var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
 	return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
 };
+
+export const getCurrencySymbol = (currency) => {
+	switch(currency) {
+		case 'USD':
+			return '$'
+		case 'EURO': 
+			return '€'
+		default:
+			return 'RSD'
+	}
+}
+
+export const formatForCurrency = (currency, number) => {
+	switch(currency) {
+		case 'USD':
+			return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD',  maximumFractionDigits: 2}).format(number);
+		case 'EURO': 
+			return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(number);
+		default:
+			return new Intl.NumberFormat('sr-RS', { style: 'currency', currency: 'RSD', maximumFractionDigits: 2 }).format(number);
+	}
+}
+
+export const calculateSubTotal = (items) => {
+	return items.reduce((acc, val) => acc + val.qty * val.uprice, 0)
+};
+
+export const calculateFees = (items,fee) => {
+	return (calculateSubTotal(items) * fee / 100)
+}
+
+export const calculateTotal = ({items, fees, discount }) => {
+	return (calculateSubTotal(items) + calculateFees(items,fees) - discount)
+}

@@ -5,7 +5,7 @@ import 'firebase/auth';
 // const withAuthProtection = redirectPath => HOC
 const withAuthProtection = redirectPath => WrappedComponent => {
   class WithAuthProtection extends React.Component {
-    
+
     componentDidMount() {
       // use history from parent.
       // console.log(redirectPath);
@@ -16,9 +16,7 @@ const withAuthProtection = redirectPath => WrappedComponent => {
       //   return history.push(redirectPath)
       // }
     }
-    componentDidUpdate(){
-      
-            console.log(redirectPath);
+    componentDidUpdate() {
       const { history } = this.props;
       console.log(firebase.auth().currentUser);
       if (!firebase.auth().currentUser) {
@@ -26,21 +24,11 @@ const withAuthProtection = redirectPath => WrappedComponent => {
         return history.push(redirectPath)
       }
     }
-    componentWillReceiveProps(nextProps) {
-      // const { me, history } = this.props;
-      // const { me: nextMe } = nextProps;
-      // if (me && !nextMe) {
-      //   // this case is a must,
-      //   // if user stay at auth route while they signing out
-      //   // we must take them to login again immediately.
-      //   history.push(redirectPath)
-      // }
-    }
     render() {
       return <WrappedComponent {...this.props} />
     }
   }
-   
+
   return WithAuthProtection
 }
 

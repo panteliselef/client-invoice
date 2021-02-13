@@ -14,16 +14,6 @@ const afterAuthCompleted = (redirectPath) => (WrappedComponent) => {
 				return history.push(redirectPath);
 			}
 		}
-		componentWillReceiveProps(nextProps) {
-			// const { me, history } = this.props;
-			// const { me: nextMe } = nextProps;
-			// if (me && !nextMe) {
-			//   // this case is a must,
-			//   // if user stay at auth route while they signing out
-			//   // we must take them to login again immediately.
-			//   history.push(redirectPath)
-			// }
-		}
 		render() {
 			return <WrappedComponent {...this.props} />;
 		}

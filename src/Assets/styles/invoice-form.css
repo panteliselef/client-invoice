@@ -5,13 +5,20 @@ form.invoice-form {
 	margin: auto;
 }
 
+form.invoice-form .fees-grid {
+	width: 400px;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	align-items: center;
+	gap: 10px;
+}
+
 form.invoice-form .item-description-table .entry,
 form.invoice-form .item-description-table .entry-title {
 	display: grid;
-	grid-template-columns: 20px auto 8rem 8rem;
+	grid-template-columns: 20px minmax(8rem,auto) 8rem 8rem;
 	grid-column-gap: .5em;
 	padding: .7em 0em;
-	overflow: hidden;
 	align-items: center;
 	min-height: 20px;
 	background-clip: border-box;
@@ -21,9 +28,11 @@ form.invoice-form * {
 	color: #192466;
 	text-decoration: none;
 }
+
 form.invoice-form a:hover {
 	text-decoration: underline;
 }
+
 form.invoice-form .item-description-table .entry:nth-child(2) {
 	border-top: 1px solid transparent;
 }
@@ -33,12 +42,14 @@ form.invoice-form .item-description-table {
 	border-radius: 10px;
 	display: grid;
 	width: 100%;
+	overflow: auto;
 }
 
 form.invoice-form .client-info-inputs {
 	/* box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28); */
 	padding: 1em;
 }
+
 .progress-bar {
 	width: 100%;
 	max-width: 5em;
@@ -49,6 +60,7 @@ form.invoice-form .client-info-inputs {
 	overflow: hidden;
 	transition: all .3s ease-in-out;
 }
+
 .progress-bar #progress-bar-colored {
 	transition: all .3s ease-in-out;
 	margin: 0;
@@ -60,6 +72,7 @@ form.invoice-form .client-info-inputs {
 form.invoice-form .item-description-table .entry-title {
 	border: none;
 }
+
 form.invoice-form .entry-title div {
 	color: #8c99ff;
 	font-weight: 600;
@@ -68,12 +81,13 @@ form.invoice-form .entry-title div {
 form.invoice-form .client-info-inputs .inputs {
 	width: 100%;
 	display: grid;
-	grid-template-columns: auto auto auto;
-	grid-column-gap: 1em;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+	/* grid-column-gap: 1em; */
 }
 
 form.invoice-form .client-info-inputs .inputs input,
-form.invoice-form .notes textarea.notes-input  {
+form.invoice-form .notes textarea.notes-input {
 	border-bottom: 1px solid #b596ff;
 	font-weight: 500;
 	padding: .5em 0em;
@@ -90,9 +104,11 @@ form.invoice-form .uploading-section {
 	justify-content: center;
 	margin: 0.3em 0 1em;
 }
+
 form.invoice-form .uploading-section div {
 	margin: 0 .5em;
 }
+
 form.invoice-form .button-area {
 	display: flex;
 	align-items: center;
@@ -111,9 +127,14 @@ form.invoice-form .client-total-bill {
 	justify-content: flex-end;
 	align-items: flex-end;
 	margin: 1rem;
-	/* font-size: 2em; */
-	margin-bottom: 0em;
 }
+
+
+form.invoice-form .client-total-bill .emphasis {
+	font-weight: bold;
+	font-size: 1.2rem;
+}
+
 form.invoice-form .button {
 	margin: 1em 0;
 	text-transform: capitalize;
@@ -147,6 +168,7 @@ form.invoice-form .input-with-label input {
 	text-align: right;
 	background-color: rgba(198, 175, 255, 0.3);
 }
+
 form.invoice-form .input-with-label input::placeholder {
 	color: #8c99ff;
 }
@@ -164,8 +186,7 @@ form.invoice-form .input-with-label {
 }
 
 form.invoice-form .item-description-table .entry input,
-.invoice-input
-{
+.invoice-input {
 	outline: none;
 	padding: .7em 0em;
 	text-indent: 1em;
@@ -185,12 +206,14 @@ form.invoice-form .notes {
 	margin: auto;
 	position: relative;
 }
+
 form.invoice-form .notes .note-title {
 	color: #8c99ff;
 	font-weight: 600;
 	margin: 1em .5em;
 	text-transform: uppercase;
 }
+
 form.invoice-form .notes textarea.notes-input {
 	width: calc(100% - 2em);
 	height: 20vw;
@@ -206,15 +229,32 @@ form.invoice-form .notes textarea.notes-input {
 	margin-bottom: 6rem;
 	font-size: 1rem;
 	padding-bottom: 2em;
-	font-family: 'Roboto',sans-serif;
+	font-family: 'Roboto', sans-serif;
 }
-form.invoice-form .notes textarea.notes-input.error{
-  background-color:  #ED4E58;
+
+form.invoice-form .notes textarea.notes-input.error {
+	background-color: #ED4E58;
 }
 
 
-@media screen and (max-width:600px){
-  form.invoice-form .notes textarea.notes-input {
-    height: 10rem;
-  }
+@media screen and (max-width:600px) {
+	form.invoice-form .notes textarea.notes-input {
+		height: 10rem;
+	}
+
+
+	form.invoice-form .fees-grid {
+		width: 100%;
+	}
+
+
+
+	form.invoice-form .client-info-inputs .inputs {
+		grid-template-columns: 1fr;
+	}
+
+	form.invoice-form .button-area {
+		justify-content: center;
+	}
+	
 }

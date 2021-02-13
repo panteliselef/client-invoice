@@ -29,10 +29,7 @@
 .expansion .expansion-body {
     margin-top: 1rem;
     margin-left: 2.5rem;
-    /* width: 200px;
-    height: 200px; */
     display: none;
-    /* background-color: red; */
 }
 
 .expansion .expansion-body.active  {

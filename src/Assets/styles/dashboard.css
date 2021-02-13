@@ -45,6 +45,7 @@ div.dashboard .files-table .entry-first {
 	grid-template-columns: auto 15rem 9rem 9rem;
 	grid-column-gap: .5rem;
 }
+
 div.dashboard .files-table .entry div {
 	color: #192466;
 	padding: 1em;
@@ -53,15 +54,18 @@ div.dashboard .files-table .entry div {
 div.dashboard .files-table .entry .number {
 	text-align: right;
 }
+
 div.dashboard .files-table .entry .link {
 	cursor: pointer;
 }
+
 div.dashboard .files-table .entry-first div {
 	color: #192466;
 	text-transform: capitalize;
 	font-weight: 500;
 	padding: .6rem 1rem;
 }
+
 div.dashboard .files-table .entry-first {
 	border: none;
 	cursor: initial;
@@ -76,4 +80,13 @@ div.dashboard .files-table .entry:hover {
 
 div.dashboard .files-table .entry:nth-child(2) {
 	border: none;
+}
+
+
+@media screen and (max-width: 800px) {
+
+	div.dashboard .files-table .entry,
+	div.dashboard .files-table .entry-first {
+		grid-template-columns: 1fr 1fr;
+	}
 }

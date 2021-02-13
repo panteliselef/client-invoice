@@ -1,34 +1,50 @@
-// https://coolors.co/8c99ff-c6afff-b596ff-192466-fff4fa
-import Header from './Header';
-import '../Assets/styles/invoice-form.css';
 import React, { useState, useEffect } from 'react';
-import jsPDF from 'jspdf';
 import firebase from 'firebase/app';
 import 'firebase/storage';
 import 'firebase/auth';
 import 'firebase/database';
-import { NavLink } from 'react-router-dom';
-import creativedaylogo from '../Assets/creativedaylogo.png';
 
+// Components
+import { NavLink } from 'react-router-dom';
+import Header from './Header';
 import ExpansionPanel from './ExpansionPanel/ExpansionPanel';
-import invoice from '../Assets/invoice.png';
-import footer from '../Assets/footer.png';
-import QRcode from '../Assets/QRcode.png';
+
+// Utils
+import createInvoice from '../Utils/invoicePDF';
+import { getCurrencySymbol, calculateFees, calculateSubTotal, calculateTotal, formatForCurrency } from '../Utils/utils';
+
+// CSS
+import '../Assets/styles/invoice-form.css';
+
+// Images
+import companyLogo from '../Assets/twologo.png';
 import arrowBox from '../Assets/arrow-left-box.svg';
+// import creativedaylogo from '../Assets/creativedaylogo.png';
+// import invoice from '../Assets/invoice.png';
+// import footer from '../Assets/footer.png';
+// import QRcode from '../Assets/QRcode.png';
 
 
 const Dashboard = (props) => {
 	const database = firebase.database();
 
-	const maxNoteCharacters = 650;
 	const [lrefNumber, setlRefNumber] = useState('');
 	const [linvoiceNumber, setlInvoiceNumber] = useState('');
 	const firebaseFiles = database.ref(`/files/${props.uid}/invoices`);
 	const [clientInfo, setClientInfo] = useState({
 		name: '',
 		address: '',
-		city: ''
+		phone: '',
+		email: ''
 	});
+
+	const currencyOptions = [
+		'USD',
+		'EURO',
+		'RSD'
+	];
+	const [activeCurrency, setActiveCurrency] = useState(currencyOptions[0])
+
 
 	useEffect(() => {
 		firebase.database().ref('/appInfo/lrefNumber').once('value', (snapshot) => {
@@ -40,31 +56,22 @@ const Dashboard = (props) => {
 		});
 	}, []);
 
-	const predefined = {
-		name: 'Michael Langhals',
-		address: '9240 Old Redwood Hwy Ste 114',
-		city: 'Windsor, CA 95492',
-		total: '0',
-		filename: 'test'
-	};
-
-	const [items, setItems] = useState([
+	const [invoiceItems, setInvoiceItems] = useState([
 		{
 			id: 1,
 			description: "",
-			price: 0,
-			quantity: 1
+			uprice: 0,
+			qty: 1
 		}
 	]);
 
 	const [nameOfPDF, setNameOfPDF] = useState('');
-	const [notes, setNotes] = useState('');
 	const [readyToUpload, setReadyToUpload] = useState(false);
 	const [uploadedPercentage, setUploadedPercentage] = useState(0);
 	const [uploadCompleted, setUploadCompleted] = useState(false);
 
 	const [feesPercent, setFeesPercent] = useState(18);
-	const [discountPercent, setDiscountPercent] = useState(0);
+	const [discountAmnt, setDiscountAmnt] = useState(0);
 
 
 	const checkForDuplicatePdf = () => {
@@ -72,7 +79,7 @@ const Dashboard = (props) => {
 			firebaseFiles.once('value', (snapshot) => {
 				snapshot.forEach((child) => {
 					console.log(child.val().metadata.name, `${nameOfPDF}.pdf`);
-					if (`${nameOfPDF || predefined.filename}.pdf` === child.val().metadata.name)
+					if (`${nameOfPDF || 'test'}.pdf` === child.val().metadata.name)
 						reject({ error: new Error('Found duplicate file'), id: child.key });
 				});
 				resolve('Hey');
@@ -81,30 +88,25 @@ const Dashboard = (props) => {
 	};
 
 	const updateItemDescription = (item, value) => {
-		let n = items.map((it) => {
+		let n = invoiceItems.map((it) => {
 			if (it.id === item.id) it.description = value;
 			return it;
 		});
-		setItems(n);
+		setInvoiceItems(n);
 	};
 	const updateItemQuantity = (item, value) => {
-		let n = items.map((it) => {
-			if (it.id === item.id) it.quantity = +value;
+		let n = invoiceItems.map((it) => {
+			if (it.id === item.id) it.qty = +value;
 			return it;
 		});
-		setItems(n);
+		setInvoiceItems(n);
 	};
 	const updateItemPrice = (item, value) => {
-		let n = items.map((it) => {
-			if (it.id === item.id) it.price = +value;
+		let n = invoiceItems.map((it) => {
+			if (it.id === item.id) it.uprice = +value;
 			return it;
 		});
-		setItems(n);
-	};
-	const calculateTotal = () => {
-		return items.reduce((acc, val) => {
-			return acc + (val.price * val.quantity);
-		}, 0);
+		setInvoiceItems(n);
 	};
 
 	const uploadPDFToDatabase = (metadata) => {
@@ -116,7 +118,7 @@ const Dashboard = (props) => {
 
 	const uploadPDFToStorage = (file) => {
 		let user = firebase.auth().currentUser;
-		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${nameOfPDF || predefined.filename}.pdf`);
+		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${nameOfPDF || 'test'}.pdf`);
 		console.log(firebase.auth().currentUser);
 
 		let metadata = {
@@ -159,667 +161,53 @@ const Dashboard = (props) => {
 	};
 
 	const addItemtoList = () => {
-		setItems([
-			...items,
+		setInvoiceItems([
+			...invoiceItems,
 			{
-				id: items.length + 1,
+				id: invoiceItems.length + 1,
 				description: '',
-				price: 0,
-				quantity: 1
+				uprice: 0,
+				qty: 1
 			}
 		]);
 	};
 
 
-	const createPDF = (arrayOfItems) => {
 
-		const generateInvoicePaymentInfor = (jspdfDoc) => {
-			jspdfDoc.setLineHeightFactor(1.5)
 
-			// 'Invoice To' Section
-			jspdfDoc.setFontSize(10);
-			jspdfDoc.setFontType('bold');
-			jspdfDoc.setTextColor('#000');
-			jspdfDoc.text('INVOICE TO', marginLeftPage, marginTopPage + 120);
+	const checkPdf = (invoiceData) => {
 
-			// 'Payment Info' Section
-			jspdfDoc.text('PAYMENT INFO', columnTwoStart, marginTopPage + 120);
+		invoiceData.refNumber = lrefNumber;
+		invoiceData.invoiceNumber = linvoiceNumber;
+		invoiceData.currency = activeCurrency;
 
+		checkForDuplicatePdf()
+			.then((msg) => {
+				console.log('SUCESS', msg);
+				let file = createInvoice(invoiceData)
 
-			// Invoice Name 
-			jspdfDoc.setFontSize(7);
-			jspdfDoc.setFontType('bold');
-			jspdfDoc.text('Name :', marginLeftPage, marginTopPage + 140);
-			jspdfDoc.text('Phone Number :', marginLeftPage, marginTopPage + 155);
-			jspdfDoc.text('Email :', marginLeftPage, marginTopPage + 170);
-			jspdfDoc.text('Address :', marginLeftPage, marginTopPage + 185);
-			jspdfDoc.text('Bank Name :', columnTwoStart, marginTopPage + 140);
-			jspdfDoc.text('Account Number :', columnTwoStart, marginTopPage + 155);
-			jspdfDoc.text('Account Holder :', columnTwoStart, marginTopPage + 170);
-			jspdfDoc.text('Bank Code :', columnTwoStart, marginTopPage + 185);
+				firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
+				firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
 
+				uploadPDF(file);
+			})
+			.catch((obj) => {
+				console.error(obj.error);
+				if (window.confirm('You already have a pdf with this name. Would you like to replace it ?')) {
+					let file = 	createInvoice(invoiceData)
+					let fileToBeDeleted = database.ref(`/files/${props.uid}/invoices/${obj.id}`);
+					fileToBeDeleted.remove().then((val) => {
 
+						firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
+						firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
 
-			// Set font weight to normal 
-			jspdfDoc.setFontType('normal');
+						uploadPDF(file);
+					});
+				} else {
+					//no
+				}
+			});
 
-			// Invoice Name Value
-			jspdfDoc.text('Ariella Moldekin', marginLeftPage + 60, marginTopPage + 140);
-			// Invoice Phone Value
-			jspdfDoc.text('+88 12 345 6789', marginLeftPage + 60, marginTopPage + 155);
-			// Invoice Email Value
-			jspdfDoc.text('yourname@gmail.com', marginLeftPage + 60, marginTopPage + 170);
-			// Invoice Address Value
-			jspdfDoc.text(jspdfDoc.splitTextToSize('Praesent viera street no. 27, West Nulla city, Leaflove', 100), marginLeftPage + 60, marginTopPage + 185);
-			// Bank Name Value
-			jspdfDoc.text('Raiffeisen Bank', columnTwoStart + 60, marginTopPage + 140);
-			// Account Number Value
-			jspdfDoc.text('20022020', columnTwoStart + 60, marginTopPage + 155);
-			// Account Holder Value
-			jspdfDoc.text('Ariella Moldekin', columnTwoStart + 60, marginTopPage + 170);
-			// Bank Code Value
-			jspdfDoc.text('PLM0310', columnTwoStart + 60, marginTopPage + 185);
-
-
-
-			// Small Dividers Left Column
-			jspdfDoc.setDrawColor('#B8B9BC')
-			jspdfDoc.setLineWidth(.5)
-			jspdfDoc.line(marginLeftPage + 60, marginTopPage + 145, columnOneEnd, marginTopPage + 145, 'F')
-			jspdfDoc.line(marginLeftPage + 60, marginTopPage + 160, columnOneEnd, marginTopPage + 160, 'F')
-			jspdfDoc.line(marginLeftPage + 60, marginTopPage + 175, columnOneEnd, marginTopPage + 175, 'F')
-			jspdfDoc.line(marginLeftPage + 60, marginTopPage + 185 + splitTitle.length * 7, columnOneEnd, marginTopPage + 185 + splitTitle.length * 7, 'F')
-			// Small Dividers Right Column
-			jspdfDoc.line(columnTwoStart + 60, marginTopPage + 145, marginRightPage, marginTopPage + 145, 'F')
-			jspdfDoc.line(columnTwoStart + 60, marginTopPage + 160, marginRightPage, marginTopPage + 160, 'F')
-			jspdfDoc.line(columnTwoStart + 60, marginTopPage + 175, marginRightPage, marginTopPage + 175, 'F')
-			jspdfDoc.line(columnTwoStart + 60, marginTopPage + 190, marginRightPage, marginTopPage + 190, 'F')
-		};
-
-		let doc = new jsPDF({
-			orientation: 'p',
-			unit: 'px',
-			foqrmat: 'a4'
-		});
-
-		let secondaryColor = '#39B0E5';
-
-		let secondaryColor2 = '#F48472';
-
-
-		const pdfWidth = doc.internal.pageSize.getWidth();
-		const pdfHeight = doc.internal.pageSize.getHeight();
-		const marginTopPage = 45;
-		const marginBottomPage = pdfHeight - 30;
-		const marginLeftPage = 60;
-		const marginRightPage = pdfWidth - marginLeftPage;
-
-
-
-		const columnWidth = (marginRightPage - marginLeftPage) / 2 - 5
-
-		const columnOneEnd = marginLeftPage + columnWidth
-		const columnTwoStart = marginRightPage - (marginRightPage - marginLeftPage) / 2 + 5
-
-		// Address
-		doc.setFont('helvetica');
-		doc.setTextColor('#000');
-		doc.setFontSize(7);
-		doc.text('Kralja Milutina 23/23', marginLeftPage, marginTopPage);
-		doc.text('Belgrade, Serbia.', marginLeftPage, marginTopPage + 10);
-
-
-		// Phone 
-		doc.setFontType('bold');
-		doc.text('Phone:', marginLeftPage, marginTopPage + 20);
-		doc.setFontType('normal');
-		doc.text('+38162456234', marginLeftPage + 25, marginTopPage + 20);
-
-
-		// Email
-		doc.setFontType('bold');
-		doc.text('Email:', marginLeftPage, marginTopPage + 30);
-		doc.setFontType('normal');
-		doc.text('hi@two.rs', marginLeftPage + 25, marginTopPage + 30);
-
-		// Website
-		doc.setFontType('bold');
-		doc.text('Website:', marginLeftPage, marginTopPage + 40);
-		doc.setFontType('normal');
-		doc.text('www.two.rs', marginLeftPage + 25, marginTopPage + 40);
-
-		// Date
-		const today = new Date();
-		doc.setFontType('bold');
-		doc.text('Date:', marginLeftPage, marginTopPage + 60);
-		doc.setFontType('normal');
-		doc.text(today.toDateString(), marginLeftPage + 35, marginTopPage + 60);
-
-		// Invoice Number
-		doc.setFontType('bold');
-		doc.text('Invoice #:', marginLeftPage, marginTopPage + 70);
-		doc.setFontType('normal');
-		doc.text('0'.repeat(7 - (linvoiceNumber + 1).toString().length).concat((linvoiceNumber + 1).toString()), marginLeftPage + 35, marginTopPage + 70);
-
-		// Reference Number
-		doc.setFontType('bold');
-		doc.text('Reference #:', marginLeftPage, marginTopPage + 80);
-		doc.setFontType('normal');
-		doc.text('0'.repeat(6 - (lrefNumber + 1).toString().length).concat((lrefNumber + 1).toString()), marginLeftPage + 35, marginTopPage + 80);
-
-
-		// Rounded Rectangle on top
-		doc.setFillColor('#ECECEE')
-		doc.roundedRect(columnTwoStart, 40, columnWidth, 12, 6, 6, 'F')
-
-		// Big Title
-		doc.setFontSize(28);
-		doc.setFontType('bold');
-		var splitTitle = doc.splitTextToSize('Danhop Lotlight', 100);
-		doc.text(splitTitle, columnTwoStart, marginTopPage + 20);
-
-		// Sub title
-		doc.setFontSize(13);
-		doc.setFontType('bold');
-		doc.setTextColor(secondaryColor2);
-		doc.text('TWO STUDIO', columnTwoStart, marginTopPage + 70);
-
-
-
-		// Dividers
-		doc.setDrawColor('#ECECEE')
-		doc.setLineWidth(1)
-		doc.line(marginLeftPage, marginTopPage + 100, columnOneEnd, marginTopPage + 100, 'F')
-		doc.line(columnTwoStart, marginTopPage + 100, marginRightPage, marginTopPage + 100, 'F')
-		doc.setDrawColor(secondaryColor2)
-		doc.line(marginLeftPage, marginTopPage + 100, marginLeftPage + 30, marginTopPage + 100, 'F')
-		doc.line(columnTwoStart, marginTopPage + 100, columnTwoStart + 30, marginTopPage + 100, 'F')
-
-
-		generateInvoicePaymentInfor(doc);
-
-
-		doc.setDrawColor('#ECECEE')
-		doc.setLineWidth(1)
-		doc.line(marginLeftPage, marginTopPage + 230, marginRightPage, marginTopPage + 230, 'F')
-		doc.setDrawColor(secondaryColor2)
-		doc.line(marginLeftPage, marginTopPage + 230, marginLeftPage + 30, marginTopPage + 230, 'F')
-
-
-		// 'ITEM / SERVICE' Section
-		doc.setFontSize(10);
-		doc.setFontType('bold');
-		doc.setTextColor('#000');
-		doc.text('ITEM / SERVICE DETAILS', marginLeftPage, marginTopPage + 250);
-
-
-		const itemTableColumn1 = {
-			start: marginLeftPage,
-			end: columnOneEnd,
-		}
-
-		const itemTableColumn2 = {
-			start: columnTwoStart,
-			end: columnTwoStart + 20,
-		}
-
-		const itemTableColumn3 = {
-			start: columnTwoStart + 30,
-			end: columnTwoStart + 20 + (marginRightPage - itemTableColumn2.end - 10) / 2,
-		}
-
-		const itemTableColumn4 = {
-			start: itemTableColumn3.end + 10,
-			end: marginRightPage
-		}
-
-		doc.setFontSize(8);
-		doc.text('Description', itemTableColumn1.start, marginTopPage + 270)
-		doc.text('Qty', itemTableColumn2.start, marginTopPage + 270)
-		doc.text('Unit Price', itemTableColumn3.start, marginTopPage + 270)
-		doc.text('Amount', itemTableColumn4.start, marginTopPage + 270)
-
-
-
-
-		const drawTableHeaderLine = (jspdfDoc) => {
-			doc.setDrawColor(secondaryColor2)
-			jspdfDoc.line(itemTableColumn1.start, marginTopPage + 275, itemTableColumn1.end, marginTopPage + 275, 'F')
-			jspdfDoc.line(itemTableColumn2.start, marginTopPage + 275, itemTableColumn2.end, marginTopPage + 275, 'F')
-			jspdfDoc.line(itemTableColumn3.start, marginTopPage + 275, itemTableColumn3.end, marginTopPage + 275, 'F')
-			jspdfDoc.line(itemTableColumn4.start, marginTopPage + 275, itemTableColumn4.end, marginTopPage + 275, 'F')
-		}
-
-		const drawTableRowLine = (jspdfDoc, mT) => {
-			doc.setDrawColor('#B8B9BC')
-			console.log(mT)
-			jspdfDoc.line(itemTableColumn1.start, marginTopPage + mT, itemTableColumn1.end, marginTopPage + mT, 'F')
-			jspdfDoc.line(itemTableColumn2.start, marginTopPage + mT, itemTableColumn2.end, marginTopPage + mT, 'F')
-			jspdfDoc.line(itemTableColumn3.start, marginTopPage + mT, itemTableColumn3.end, marginTopPage + mT, 'F')
-			jspdfDoc.line(itemTableColumn4.start, marginTopPage + mT, itemTableColumn4.end, marginTopPage + mT, 'F')
-		}
-
-		const drawTableRowData = (jspdfDoc, mT, item) => {
-			jspdfDoc.setFontType('normal')
-			jspdfDoc.setFontSize(7)
-			mT -= 4
-			const options = { align: 'right' };
-			jspdfDoc.text('Item / service description here', itemTableColumn1.start, marginTopPage + mT)
-			jspdfDoc.text('' + item.qty, itemTableColumn2.end, marginTopPage + mT, options)
-			jspdfDoc.text('$' + item.uprice + '', itemTableColumn3.end, marginTopPage + mT, options)
-			jspdfDoc.text('$' + item.uprice * item.qty + '', itemTableColumn4.end, marginTopPage + mT, options)
-		}
-
-
-		doc.setLineWidth(.8)
-		drawTableHeaderLine(doc)
-		let currH = 275 + 13
-		let step = 13;
-		for (let item = 0; item < arrayOfItems.length; item++) {
-			const element = arrayOfItems[item];
-
-			drawTableRowLine(doc, currH + (step * item))
-
-			drawTableRowData(doc, currH + (step * item), element)
-
-		}
-
-		const drawTotalHeaderLine = (jspdfDoc) => {
-			doc.setDrawColor(secondaryColor2)
-			doc.line(itemTableColumn2.start, marginTopPage + 500, itemTableColumn3.end, marginTopPage + 500, 'F')
-			doc.line(itemTableColumn4.start, marginTopPage + 500, itemTableColumn4.end, marginTopPage + 500, 'F')
-		}
-
-
-		const drawTotalRowLine = (jspdfDoc, mT) => {
-			doc.setDrawColor('#B8B9BC')
-			doc.line(itemTableColumn2.start, marginTopPage + mT, itemTableColumn3.end, marginTopPage + mT, 'F')
-			doc.line(itemTableColumn4.start, marginTopPage + mT, itemTableColumn4.end, marginTopPage + mT, 'F')
-		}
-
-		const drawTotalRowData = (jspdfDoc, mT, item) => {
-			doc.setFontType('bold')
-			doc.setFontSize(8)
-			mT -= 4;
-			doc.text(item.title,itemTableColumn2.start, marginTopPage + mT)
-			doc.text(item.value,itemTableColumn4.start, marginTopPage + mT)
-		}
-
-
-		drawTotalHeaderLine(doc)
-
-
-		currH = 500 + 14;
-		step = 14;
-		const arr = [
-			{
-				title: 'Sub-Total',
-				value: `$${arrayOfItems.reduce((acc,val)=>acc + val.qty * val.uprice,0)}`
-			},
-			{
-				title: 'Tax',
-				value: ''
-			},
-			{
-				title: 'Discount',
-				value: ''
-			},
-			{
-				title: 'Grand Total',
-				value: ''
-			}
-
-		]
-		for (let item = 0; item < arr.length; item++) {
-			const element = arr[item];
-
-			console.log(element)
-
-			drawTotalRowLine(doc, currH + (step * item));
-			drawTotalRowData(doc, currH + (step * item), element)
-
-		}
-
-
-
-
-
-
-
-
-		// doc.addImage(
-		// 	document.getElementById('img'),
-		// 	'PNG',
-		// 	doc.internal.pageSize.getWidth() / 2 - 50,
-		// 	20,
-		// 	100,
-		// 	20,
-		// 	'wf',
-		// 	'FAST'
-		// );
-
-		// doc.addImage(
-		// 	document.getElementById('img-invoice'),
-		// 	'PNG',
-		// 	0,
-		// 	80,
-		// 	doc.internal.pageSize.getWidth(),
-		// 	100,
-		// 	'dwa',
-		// 	'FAST'
-		// );
-
-
-
-
-		// doc.setFont('helvetica');
-		// doc.setTextColor('#ffffff');
-		// doc.setFontType('bold');
-		// doc.setFontSize(25);
-		// doc.text(doc.internal.pageSize.getWidth() / 2 - calculateWidth(25, 'BILL TO:', pdfWidth) / 2, 115, 'BILL TO:', {
-		// 	align: 'center'
-		// });
-		// doc.setFontSize(13);
-
-		// let billingName = clientInfo.name || predefined.name;
-		// let billingAddress = clientInfo.address || predefined.address;
-		// let billingCity = clientInfo.city || predefined.city;
-
-		let billingName = clientInfo.name || ' ';
-		let billingAddress = clientInfo.address || ' ';
-		let billingCity = clientInfo.city || ' ';
-		// doc.text(
-		// 	doc.internal.pageSize.getWidth() / 2 - calculateWidth(13, billingName, pdfWidth) / 2,
-		// 	148,
-		// 	billingName,
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-
-		// doc.setFontSize(11);
-		// doc.setFontType('normal');
-		// doc.text(
-		// 	doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, billingAddress, pdfWidth) / 2,
-		// 	160,
-		// 	billingAddress,
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-		// doc.text(
-		// 	doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, billingCity, pdfWidth) / 2,
-		// 	170,
-		// 	billingCity,
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-
-		// doc.setTextColor(secondaryColor);
-		// doc.text(
-		// 	60 + 0 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'INVOICE #', pdfWidth),
-		// 	210,
-		// 	'INVOICE #',
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-
-		// doc.setTextColor(secondaryColor);
-		// doc.text(
-		// 	60 + 1 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'INVOICE DATE', pdfWidth),
-		// 	210,
-		// 	'INVOICE DATE',
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-		// doc.setTextColor(secondaryColor);
-		// doc.text(
-		// 	60 + 2 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'DUE DATE', pdfWidth),
-		// 	210,
-		// 	'DUE DATE',
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-
-		// doc.text(60 + 3 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, 'REF #', pdfWidth), 210, 'REF #', {
-		// 	align: 'center'
-		// });
-
-		// doc.setTextColor('#000');
-		// doc.setFontSize(10);
-
-		// console.log('LENGHT', (7 - linvoiceNumber.toString().length) * '0' + linvoiceNumber.toString());
-		// doc.text(
-		// 	60 + 0 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '0003653', pdfWidth),
-		// 	220,
-		// 	'0'.repeat(7 - (linvoiceNumber + 1).toString().length).concat((linvoiceNumber + 1).toString()),
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-
-		// // let today = new Date();
-		// let tomorrow = new Date();
-		// tomorrow.setDate(today.getDate() + 1);
-		// doc.text(
-		// 	60 + 1 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', pdfWidth),
-		// 	220,
-		// 	today.toDateString(),
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-
-		// doc.text(
-		// 	60 + 2 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '06 June 2019', pdfWidth),
-		// 	220,
-		// 	tomorrow.toDateString(),
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-		// doc.text(
-		// 	60 + 3 * doc.internal.pageSize.getWidth() / 4 - calculateWidth(11, '007733', pdfWidth),
-		// 	220,
-		// 	'0'.repeat(6 - (lrefNumber + 1).toString().length).concat((lrefNumber + 1).toString()),
-		// 	{
-		// 		align: 'center'
-		// 	}
-		// );
-
-		// doc.setLineWidth(2.5);
-		// doc.setDrawColor(237, 237, 237);
-		// doc.line(0, 240, pdfWidth, 240, 'F');
-
-		// doc.setFontSize(11);
-		// doc.setFontType('normal');
-		// doc.setTextColor(secondaryColor);
-		// doc.text(60, 280, '#', {
-		// 	align: 'left'
-		// });
-		// doc.text(70, 280, 'Item Descritpion', {
-		// 	align: 'left'
-		// });
-		// doc.text(pdfWidth - 60, 280, 'Amount', {
-		// 	align: 'right'
-		// });
-
-		// doc.setLineWidth(0.5);
-		// doc.setDrawColor(221, 220, 220);
-		// doc.line(50, 290, pdfWidth - 50, 290, 'F');
-
-
-		// let currentHeight = 305;
-		// arrayOfItems.forEach((item) => {
-		// 	if (item.description !== '' && item.description != null) {
-		// 		console.log(item.description);
-		// 		doc.setTextColor('#000');
-		// 		doc.text(60, currentHeight, '' + item.id, {
-		// 			align: 'left'
-		// 		});
-		// 		doc.text(70, currentHeight, item.description, {
-		// 			align: 'left'
-		// 		});
-		// 		doc.text(doc.internal.pageSize.getWidth() - 60, currentHeight, item.price.toFixed(2), {
-		// 			align: 'right'
-		// 		});
-		// 		doc.setLineWidth(0.5);
-		// 		doc.setDrawColor(221, 220, 220);
-		// 		doc.line(50, currentHeight + 10, doc.internal.pageSize.getWidth() - 50, currentHeight + 10, 'F');
-		// 		currentHeight += 26;
-		// 	}
-		// });
-
-		// doc.setFontSize(11);
-		// doc.setFontType('normal');
-		// doc.text(
-		// 	doc.internal.pageSize.getWidth() - 50,
-		// 	currentHeight,
-		// 	`Subtotal $  ${calculateTotal().toFixed(2)}`,
-		// 	{
-		// 		align: 'right'
-		// 	}
-		// );
-
-		// doc.setFontType('bold');
-		// doc.text(
-		// 	doc.internal.pageSize.getWidth() - 50,
-		// 	currentHeight + 15,
-		// 	`Total $ ${calculateTotal().toFixed(2)}`,
-		// 	{
-		// 		align: 'right'
-		// 	}
-		// );
-
-		// currentHeight += 20;
-
-		// doc.setLineWidth(1);
-		// doc.setDrawColor(221, 220, 220);
-		// doc.line(
-		// 	doc.internal.pageSize.getWidth() - 200,
-		// 	currentHeight + 13,
-		// 	doc.internal.pageSize.getWidth() - 50,
-		// 	currentHeight + 13,
-		// 	'F'
-		// );
-
-		// doc.addImage(document.getElementById('img-qr-code'), 'PNG', 65, currentHeight - 20, 60, 60, 'da', 'FAST');
-		// doc.setTextColor(secondaryColor);
-		// doc.setFontSize(14);
-		// doc.setFontType('bold');
-
-		// doc.text(
-		// 	doc.internal.pageSize.getWidth() - 60 - calculateWidth(14, '$' + calculateTotal().toFixed(2)),
-		// 	currentHeight + 30,
-		// 	'Balance Due',
-		// 	{
-		// 		align: 'right'
-		// 	}
-		// );
-
-		// doc.text(doc.internal.pageSize.getWidth() - 50, currentHeight + 30, `$${calculateTotal().toFixed(2)}`, {
-		// 	align: 'right'
-		// });
-
-		// doc.line(
-		// 	doc.internal.pageSize.getWidth() - 200,
-		// 	currentHeight + 40,
-		// 	doc.internal.pageSize.getWidth() - 50,
-		// 	currentHeight + 40,
-		// 	'F'
-		// );
-		// currentHeight += 50;
-
-		// //ABOUT NOTES
-		// if (notes.length > 0) {
-		// 	doc.setTextColor('#000');
-		// 	doc.setFontSize(11);
-		// 	doc.setFontType('bold');
-		// 	doc.text(50, currentHeight + 30, 'Notes', {
-		// 		align: 'left'
-		// 	});
-		// 	doc.setFontType('normal');
-		// 	doc.setFontSize(10);
-		// 	let splitTitle = doc.splitTextToSize(notes, 350);
-		// 	doc.text(50, currentHeight + 40, splitTitle);
-		// }
-		// //
-		// doc.addImage(
-		// 	document.getElementById('img-footer'),
-		// 	'PNG',
-		// 	0,
-		// 	doc.internal.pageSize.getHeight() - 30,
-		// 	doc.internal.pageSize.getHeight(),
-		// 	doc.internal.pageSize.getHeight(),
-		// 	'wadf',
-		// 	'FAST'
-		// );
-
-		// doc.setTextColor('#fff');
-		// doc.setFontSize(11);
-		// doc.text(
-		// 	doc.internal.pageSize.getWidth() / 2 - calculateWidth(11, 'www.creativeday.me', pdfWidth) / 2,
-		// 	doc.internal.pageSize.getHeight() - 15,
-		// 	'www.creativeday.me',
-		// 	{
-		// 		align: 'center',
-		// 		charSpace: 2
-		// 	}
-		// );
-		// let file = doc.output('blob');
-		let file = doc.output('dataurlnewwindow');
-		return file;
-	};
-
-	const checkPdf = (arr) => {
-
-
-		arr = Array(15).fill({
-			name: 'dwad',
-			qty: 2,
-			uprice: 120
-		})
-		createPDF(arr)
-
-		// if (notes.length > maxNoteCharacters) {
-		// 	window.alert('Your notes have a lot of characters');
-		// } else {
-		// 	checkForDuplicatePdf()
-		// 		.then((msg) => {
-		// 			console.log('SUCESS', msg);
-		// 			let file = createPDF(arr);
-
-		// 			firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
-
-		// 			firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
-
-		// 			uploadPDF(file);
-		// 		})
-		// 		.catch((obj) => {
-		// 			console.error(obj.error);
-		// 			if (window.confirm('You already have a pdf with this name. Would you like to replace it ?')) {
-		// 				let file = createPDF(arr);
-		// 				let fileToBeDeleted = database.ref(`/files/${props.uid}/invoices/${obj.id}`);
-		// 				fileToBeDeleted.remove().then((val) => {
-
-		// 					firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
-		// 					firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
-
-		// 					uploadPDF(file);
-		// 				});
-		// 			} else {
-		// 				//no
-		// 			}
-		// 		});
-		// }
-	};
-
-	const calculateWidth = (fontSize, string, widthOfPdf = 1) => {
-		return string.length * (fontSize / 1.618) / widthOfPdf;
 	};
 
 	return (
@@ -829,10 +217,11 @@ const Dashboard = (props) => {
 			<Header />
 			<form name="invoice-form" className="invoice-form">
 				<div style={{ display: 'none' }}>
-					<img id="img" width="100" height="100" src={creativedaylogo} alt="invisible" />
+					{/* <img id="img" width="100" height="100" src={creativedaylogo} alt="invisible" />
 					<img id="img-invoice" width="100" height="100" src={invoice} alt="invisible" />
 					<img id="img-footer" width="100" height="100" src={footer} alt="invisible" />
-					<img id="img-qr-code" width="100" height="100" src={QRcode} alt="invisible" />
+					<img id="img-qr-code" width="100" height="100" src={QRcode} alt="invisible" /> */}
+					<img id="img-logo" width="100" height="100" src={companyLogo} alt="invisible" />
 				</div>
 				<div style={{ display: 'flex', alignItems: 'center' }}>
 					<NavLink to="/dashboard">
@@ -850,14 +239,21 @@ const Dashboard = (props) => {
 							placeholder="Name"
 						/>
 						<input
+							onChange={(e) => setClientInfo({ ...clientInfo, email: e.target.value })}
+							value={clientInfo.email}
+							placeholder="Email"
+							type="email"
+						/>
+						<input
 							onChange={(e) => setClientInfo({ ...clientInfo, address: e.target.value })}
 							value={clientInfo.address}
 							placeholder="Address"
 						/>
 						<input
-							onChange={(e) => setClientInfo({ ...clientInfo, city: e.target.value })}
-							value={clientInfo.city}
-							placeholder="City"
+							onChange={(e) => setClientInfo({ ...clientInfo, phone: e.target.value })}
+							value={clientInfo.phone}
+							placeholder="Phone"
+							type="tel"
 						/>
 					</div>
 				</div>
@@ -865,7 +261,12 @@ const Dashboard = (props) => {
 					<div onClick={() => addItemtoList()} className="button">
 						+ add Item
 					</div>
-					<div onClick={() => checkPdf(items)} className="button">
+					<div onClick={() => checkPdf({
+						feesPnt: feesPercent,
+						discountAmnt,
+						invoiceItems,
+						clientInfo
+					})} className="button">
 						Create PDF
 					</div>
 				</div>
@@ -884,15 +285,32 @@ const Dashboard = (props) => {
 						</div>
 					</div>
 				)}
-				<div className="input-with-label">
-					<input
-						id="name-of-pdf"
-						placeholder="test"
-						onChange={(e) => setNameOfPDF(e.target.value)}
-						value={nameOfPDF}
-					/>
-					<div className="file-extention">.pdf</div>
+
+				<div style={{
+					display: 'flex',
+					justifyContent: 'space-between'
+				}}>
+					<select onChange={(e) => {
+						setActiveCurrency(e.target.value)
+					}}>
+						{currencyOptions.map((option, index) =>
+							<option key={index} value={option}>{option}</option>
+						)}
+					</select>
+
+					<div className="input-with-label">
+						<input
+							id="name-of-pdf"
+							placeholder="test"
+							onChange={(e) => setNameOfPDF(e.target.value)}
+							value={nameOfPDF}
+						/>
+						<div className="file-extention">.pdf</div>
+					</div>
+
+
 				</div>
+
 
 				<div className="item-description-table">
 					<div className="entry-title">
@@ -901,7 +319,7 @@ const Dashboard = (props) => {
 						<div>Quantity</div>
 						<div>Price</div>
 					</div>
-					{items.map((item) => {
+					{invoiceItems.map((item) => {
 						return (
 							<div key={item.id} className="entry">
 								<div>{item.id}</div>
@@ -916,7 +334,7 @@ const Dashboard = (props) => {
 								<div>
 									<input
 										type="number"
-										value={item.quantity}
+										value={item.qty}
 										placeholder="Qnt"
 										onChange={(e) => updateItemQuantity(item, e.target.value)}
 										pattern="[0-9]*"
@@ -925,7 +343,7 @@ const Dashboard = (props) => {
 								<div>
 									<input
 										type="number"
-										value={item.price}
+										value={item.uprice}
 										placeholder="price"
 										onChange={(e) => updateItemPrice(item, e.target.value)}
 										pattern="[0-9]*"
@@ -936,7 +354,7 @@ const Dashboard = (props) => {
 					})}
 				</div>
 				<div className="client-total-bill">
-					<div>Sub Total ${calculateTotal().toFixed(2)}</div>
+					<div className='emphasis'>Sub Total {formatForCurrency(activeCurrency, calculateSubTotal(invoiceItems))}</div>
 
 
 				</div>
@@ -947,16 +365,9 @@ const Dashboard = (props) => {
 
 
 
-				<ExpansionPanel isOpen={true} title="Taxes">
+				<ExpansionPanel isOpen={true} title="Fees & Discount">
 
-					<div style={{
-						width: '400px',
-						display: 'grid',
-						gridTemplateColumns: '1fr 1fr',
-						alignItems: 'center',
-						gap: '10px'
-
-					}}>
+					<div className="fees-grid">
 						<div style={{
 							textAlign: 'right',
 							fontWeight: 'bold'
@@ -976,12 +387,12 @@ const Dashboard = (props) => {
 							textAlign: 'right',
 							fontWeight: 'bold'
 						}}>
-							Discount %
+							Discount {getCurrencySymbol(activeCurrency)}
 						</div>
 						<input className="invoice-input"
 							type="number"
-							value={discountPercent}
-							onChange={(e) => setDiscountPercent(+e.target.value)}
+							value={discountAmnt}
+							onChange={(e) => setDiscountAmnt(+e.target.value)}
 							pattern="[0-9]*"
 						/>
 					</div>
@@ -993,7 +404,7 @@ const Dashboard = (props) => {
 				<div className="client-total-bill">
 
 					<div style={{
-						width: '150px',
+						width: 'auto',
 						display: 'grid',
 						gridTemplateColumns: '1fr 1fr',
 						alignItems: 'center',
@@ -1010,7 +421,7 @@ const Dashboard = (props) => {
 						<div style={{
 							textAlign: 'right',
 							fontWeight: 'bold'
-						}}>+${(calculateTotal() * feesPercent / 100).toFixed(2)}</div>
+						}}>+ {formatForCurrency(activeCurrency, calculateFees(invoiceItems, feesPercent))}</div>
 
 
 
@@ -1025,34 +436,13 @@ const Dashboard = (props) => {
 							textAlign: 'right',
 							fontWeight: 'bold',
 							color: 'green'
-						}}>-${(calculateTotal() * discountPercent / 100).toFixed(2)}</div>
+						}}>- {formatForCurrency(activeCurrency, discountAmnt)}</div>
 
 					</div>
-					<div>Total ${(calculateTotal() + (calculateTotal() * feesPercent / 100) - (calculateTotal() * discountPercent / 100)).toFixed(2)}</div>
+
+					<div className='emphasis' style={{ marginTop: '1rem' }}>Total {formatForCurrency(activeCurrency, calculateTotal({ items: invoiceItems, fees: feesPercent, discount: discountAmnt }))}  </div>
 
 
-				</div>
-
-
-				<div className="notes">
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
-							flexWrap: 'wrap'
-						}}
-					>
-						<div className="note-title">Write a few notes</div>
-						<div style={notes.length > maxNoteCharacters ? { color: '#ED4E58' } : {}}>
-							{notes.length}/{maxNoteCharacters}
-						</div>
-					</div>
-					<textarea
-						className={`notes-input ${notes.length > maxNoteCharacters ? 'error' : ''}`}
-						value={notes}
-						onChange={(e) => setNotes(e.target.value)}
-					/>
 				</div>
 			</form>
 		</div>
