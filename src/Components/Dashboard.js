@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, withRouter } from 'react-router-dom';
+import { NavLink, Link, withRouter } from 'react-router-dom';
 
 // Utils
 import { bytesToSize } from '../Utils/utils';
@@ -18,12 +18,12 @@ import 'firebase/storage';
 import '../Assets/styles/dashboard.css';
 
 
-const Dashboard = ({globalState}) => {
+const Dashboard = ({ globalState }) => {
 	console.log(globalState)
 	const [isFetchingData, setIsFetchingData] = useState(false); // hook: for displaying loading spinner while fetching data
 	const [files, setFiles] = useState([]); // hook: array of user's files
 	const user = firebase.auth().currentUser; // ref: firebase.user
-	
+
 
 	const [isDesktop, setDesktop] = useState(window.innerWidth > 800);
 
@@ -36,51 +36,15 @@ const Dashboard = ({globalState}) => {
 		return () => window.removeEventListener("resize", updateMedia);
 	});
 
-	useEffect(
-		() => {
-			const database = firebase.database(); // ref: firebase.database
-			const firebaseFiles = database.ref(`/files/${(globalState) ?
-				globalState.signedInUserInfo.uid : ""}/invoices`); // ref: firebase database files path
-		
-			setIsFetchingData(true);
-			firebaseFiles.on('value', (snapshot) => {
-				const fileObj = snapshot.val();
-				if (fileObj) {
-					const fileList = Object.keys(fileObj).map((key) => ({
-						data: fileObj[key].metadata,
-						id: key
-					}));
-					console.log(fileList);
-					setFiles(fileList);
-					setIsFetchingData(false);
-				} else {
-					setFiles([]);
-					setIsFetchingData(false);
-				}
-			});
 
-			return function cleanup() {
-				firebaseFiles.off();
-				setIsFetchingData(false);
-			};
-		},
-		[globalState]
-	);
-
-
-	const openPDF = async (event, pdfName) => {
-		event.preventDefault();
-		console.log(pdfName);
-		let pdfRef = firebase.storage().ref(`/${user.uid}/invoices/${pdfName}`);
+	async function fetchPdfFromStorage(name) {
+		let pdfRef = firebase.storage().ref(`/${user.uid}/invoices/${name}`);
 
 		return new Promise(async (resolve, reject) => {
 			try {
 				const url = await pdfRef.getDownloadURL();
-				var win = window.open(url, '_blank');
-				win.focus();
 				resolve(url)
 			} catch (error) {
-				console.error(error);
 				switch (error.code) {
 					case 'storage/object-not-found':
 						// File doesn't exist
@@ -102,7 +66,47 @@ const Dashboard = ({globalState}) => {
 				reject(error.code)
 			}
 		})
-	};
+	}
+
+	useEffect(
+		() => {
+			const database = firebase.database(); // ref: firebase.database
+			const firebaseFiles = database.ref(`/files/${(globalState) ?
+				globalState.signedInUserInfo.uid : ""}/invoices`); // ref: firebase database files path
+
+			setIsFetchingData(true);
+			firebaseFiles.on('value', async (snapshot) => {
+				console.log('snap', snapshot.val())
+				const fileObj = snapshot.val();
+				if (fileObj) {
+					const fileList = await Promise.all(Object.keys(fileObj).map(async (key) => {
+						const data = fileObj[key].metadata;
+						const url = await fetchPdfFromStorage(data.name)
+						return {
+							url,
+							data,
+							id: key
+						}
+					}));
+
+
+					setFiles(fileList);
+					setIsFetchingData(false);
+				} else {
+					setFiles([]);
+					setIsFetchingData(false);
+				}
+			});
+
+			return function cleanup() {
+				firebaseFiles.off();
+				setIsFetchingData(false);
+			};
+		},
+		[globalState]
+	);
+
+
 	return (
 		<div className="container">
 			<Header />
@@ -129,24 +133,26 @@ const Dashboard = ({globalState}) => {
 					) : files.length === 0 ? (
 						<div style={{ textAlign: "center", margin: "2em" }}>No files uploaded yet</div>
 					) : (
-								files.map(({ id, data }) => {
-									let updatedData = new Date(data.updated);
-									return isDesktop ? 
-									<div key={id} className="entry">
-											<div>{data.name}</div>
-											<div>{updatedData.toLocaleString()}</div>
-											<div className="number">{bytesToSize(data.size)}</div>
-											<div className="link" onClick={async (e) => await openPDF(e, data.name)}>Open</div>
-										</div>
+								files
+									.sort((a, b) => b.data.customMetadata.timestamp - a.data.customMetadata.timestamp)
+									.map(({ id, data, url }) => {
+										let updatedData = new Date(data.updated);
+										return isDesktop ?
+											<div key={id} className="entry">
+												<div>{data.name}</div>
+												<div>{updatedData.toLocaleString()}</div>
+												<div className="number">{bytesToSize(data.size)}</div>
+												<a className="link" href={url} target={'_blank'}>Open</a>
+											</div>
 
-									:
-									<div key={id} className="entry"  onClick={async (e) => await openPDF(e, data.name)}>
-											<div>{data.name}</div>
-											<div>{updatedData.toLocaleDateString()}</div>
-										</div>
-										
-									;
-								})
+											:
+											<a key={id} href={url} target={'_blank'} className="entry">
+												<div>{data.name}</div>
+												<div>{updatedData.toLocaleDateString()}</div>
+											</a>
+
+											;
+									})
 							)}
 				</div>
 			</div>

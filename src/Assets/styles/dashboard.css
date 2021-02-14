@@ -33,8 +33,6 @@ div.dashboard .files-table {
 
 div.dashboard .files-table .entry,
 div.dashboard .files-table .entry-first {
-	/* cursor: pointer; */
-	/* margin: 0em 1em; */
 	overflow: hidden;
 	align-items: center;
 	min-height: 20px;
@@ -44,9 +42,13 @@ div.dashboard .files-table .entry-first {
 	display: grid;
 	grid-template-columns: auto 15rem 9rem 9rem;
 	grid-column-gap: .5rem;
+
+	text-decoration: none;
 }
 
-div.dashboard .files-table .entry div {
+div.dashboard .files-table .entry div, 
+div.dashboard .files-table .entry a {
+	text-decoration: none;
 	color: #192466;
 	padding: 1em;
 }
