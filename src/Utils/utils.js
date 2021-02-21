@@ -43,3 +43,9 @@ export const calculateFees = (items,fee) => {
 export const calculateTotal = ({items, fees, discount }) => {
 	return (calculateSubTotal(items) + calculateFees(items,fees) - discount)
 }
+
+
+// iNumber is the invoice number
+export const formatInvoiceNumber = (iNumber) => {
+	return '0'.repeat(3 - (iNumber + 1).toString().length).concat((iNumber + 1).toString());
+}

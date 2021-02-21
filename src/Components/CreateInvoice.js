@@ -11,7 +11,7 @@ import ExpansionPanel from './ExpansionPanel/ExpansionPanel';
 
 // Utils
 import createInvoice from '../Utils/invoicePDF';
-import { getCurrencySymbol, calculateFees, calculateSubTotal, calculateTotal, formatForCurrency } from '../Utils/utils';
+import { getCurrencySymbol, calculateFees, calculateSubTotal, calculateTotal, formatForCurrency, formatInvoiceNumber } from '../Utils/utils';
 
 // CSS
 import '../Assets/styles/invoice-form.css';
@@ -19,16 +19,11 @@ import '../Assets/styles/invoice-form.css';
 // Images
 import companyLogo from '../Assets/twologo.png';
 import arrowBox from '../Assets/arrow-left-box.svg';
-// import creativedaylogo from '../Assets/creativedaylogo.png';
-// import invoice from '../Assets/invoice.png';
-// import footer from '../Assets/footer.png';
-// import QRcode from '../Assets/QRcode.png';
 
 
 const Dashboard = (props) => {
 	const database = firebase.database();
 
-	const [lrefNumber, setlRefNumber] = useState('');
 	const [linvoiceNumber, setlInvoiceNumber] = useState('');
 	const firebaseFiles = database.ref(`/files/${props.uid}/invoices`);
 	const [clientInfo, setClientInfo] = useState({
@@ -47,9 +42,9 @@ const Dashboard = (props) => {
 
 
 	useEffect(() => {
-		firebase.database().ref('/appInfo/lrefNumber').once('value', (snapshot) => {
-			setlRefNumber(snapshot.val());
-		});
+		// firebase.database().ref('/appInfo/lrefNumber').once('value', (snapshot) => {
+		// 	setlRefNumber(snapshot.val());
+		// });
 
 		firebase.database().ref('/appInfo/linvoiceNumber').once('value', (snapshot) => {
 			setlInvoiceNumber(snapshot.val());
@@ -65,7 +60,7 @@ const Dashboard = (props) => {
 		}
 	]);
 
-	const [nameOfPDF, setNameOfPDF] = useState('');
+	const [nameOfProject, setNameOfProject] = useState('');
 	const [readyToUpload, setReadyToUpload] = useState(false);
 	const [uploadedPercentage, setUploadedPercentage] = useState(0);
 	const [uploadCompleted, setUploadCompleted] = useState(false);
@@ -74,15 +69,19 @@ const Dashboard = (props) => {
 	const [discountAmnt, setDiscountAmnt] = useState(0);
 
 
+	const generatePDFName = (iNumber, projectName) => {
+		return `invoice${formatInvoiceNumber(iNumber)}${projectName.replace(' ','-')}.pdf`;
+	}
+
 	const checkForDuplicatePdf = () => {
 		return new Promise((resolve, reject) => {
 			firebaseFiles.once('value', (snapshot) => {
 				snapshot.forEach((child) => {
-					console.log(child.val().metadata.name, `${nameOfPDF}.pdf`);
-					if (`${nameOfPDF || 'test'}.pdf` === child.val().metadata.name)
+					console.log(child.val().metadata.name, generatePDFName(linvoiceNumber,nameOfProject));
+					if (generatePDFName(linvoiceNumber,nameOfProject) === child.val().metadata.name)
 						reject({ error: new Error('Found duplicate file'), id: child.key });
 				});
-				resolve('Hey');
+				resolve(true);
 			});
 		});
 	};
@@ -118,7 +117,8 @@ const Dashboard = (props) => {
 
 	const uploadPDFToStorage = (file) => {
 		let user = firebase.auth().currentUser;
-		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${nameOfPDF || 'test'}.pdf`);
+
+		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${generatePDFName(linvoiceNumber,nameOfProject)}`);
 		console.log(firebase.auth().currentUser);
 
 		let metadata = {
@@ -177,17 +177,15 @@ const Dashboard = (props) => {
 
 	const checkPdf = (invoiceData) => {
 
-		invoiceData.refNumber = lrefNumber;
 		invoiceData.invoiceNumber = linvoiceNumber;
 		invoiceData.currency = activeCurrency;
-
 
 		checkForDuplicatePdf()
 			.then((msg) => {
 				console.log('SUCESS', msg);
 				let file = createInvoice(invoiceData)
 
-				firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
+				// firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
 				firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
 
 				uploadPDF(file);
@@ -195,11 +193,11 @@ const Dashboard = (props) => {
 			.catch((obj) => {
 				console.error(obj.error);
 				if (window.confirm('You already have a pdf with this name. Would you like to replace it ?')) {
-					let file = 	createInvoice(invoiceData)
+					let file = createInvoice(invoiceData)
 					let fileToBeDeleted = database.ref(`/files/${props.uid}/invoices/${obj.id}`);
 					fileToBeDeleted.remove().then((val) => {
 
-						firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
+						// firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
 						firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
 
 						uploadPDF(file);
@@ -218,10 +216,6 @@ const Dashboard = (props) => {
 			<Header />
 			<form name="invoice-form" className="invoice-form">
 				<div style={{ display: 'none' }}>
-					{/* <img id="img" width="100" height="100" src={creativedaylogo} alt="invisible" />
-					<img id="img-invoice" width="100" height="100" src={invoice} alt="invisible" />
-					<img id="img-footer" width="100" height="100" src={footer} alt="invisible" />
-					<img id="img-qr-code" width="100" height="100" src={QRcode} alt="invisible" /> */}
 					<img id="img-logo" width="100" height="100" src={companyLogo} alt="invisible" />
 				</div>
 				<div style={{ display: 'flex', alignItems: 'center' }}>
@@ -266,7 +260,8 @@ const Dashboard = (props) => {
 						feesPnt: feesPercent,
 						discountAmnt,
 						invoiceItems,
-						clientInfo
+						clientInfo,
+						projectName: nameOfProject
 					})} className="button">
 						Create PDF
 					</div>
@@ -291,6 +286,15 @@ const Dashboard = (props) => {
 					display: 'flex',
 					justifyContent: 'space-between'
 				}}>
+
+					<input className="input-with-label"
+						id="name-of-project"
+						placeholder="Project Name"
+						onChange={(e) => setNameOfProject(e.target.value)}
+						value={nameOfProject}
+					/>
+
+
 					<select onChange={(e) => {
 						setActiveCurrency(e.target.value)
 					}}>
@@ -299,15 +303,6 @@ const Dashboard = (props) => {
 						)}
 					</select>
 
-					<div className="input-with-label">
-						<input
-							id="name-of-pdf"
-							placeholder="test"
-							onChange={(e) => setNameOfPDF(e.target.value)}
-							value={nameOfPDF}
-						/>
-						<div className="file-extention">.pdf</div>
-					</div>
 
 
 				</div>
@@ -354,15 +349,12 @@ const Dashboard = (props) => {
 						);
 					})}
 				</div>
+
+
+
 				<div className="client-total-bill">
 					<div className='emphasis'>Sub Total {formatForCurrency(activeCurrency, calculateSubTotal(invoiceItems))}</div>
-
-
 				</div>
-
-
-
-
 
 
 

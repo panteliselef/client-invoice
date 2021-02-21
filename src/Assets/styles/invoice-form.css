@@ -156,16 +156,16 @@ form.invoice-form input {
 	border: none;
 }
 
-form.invoice-form .input-with-label input {
+form.invoice-form input.input-with-label  {
 	outline: none;
-	padding: .7em 0em;
-	padding-right: 1em;
+	padding: .7rem 0em;
+	text-indent: 1rem;
 	border-radius: 20px;
 	transition: .3s all ease;
 
 	font-weight: 500;
-	max-width: calc(10em - 1em);
-	text-align: right;
+	width: 100%;
+	max-width: 20rem;
 	background-color: rgba(198, 175, 255, 0.3);
 }
 
@@ -176,13 +176,7 @@ form.invoice-form .input-with-label input::placeholder {
 form.invoice-form .input-with-label .file-extention {
 	font-weight: 500;
 	font-size: 1rem;
-}
-
-form.invoice-form .input-with-label {
-	margin: 0 1em;
-	display: flex;
-	justify-content: flex-end;
-	align-items: center;
+	margin-right: .5rem;
 }
 
 form.invoice-form .item-description-table .entry input,

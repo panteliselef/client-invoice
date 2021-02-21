@@ -1,9 +1,9 @@
 import jsPDF from 'jspdf';
-import { formatForCurrency, calculateFees, calculateTotal, calculateSubTotal } from './utils';
+import { formatForCurrency, formatInvoiceNumber, calculateFees, calculateTotal, calculateSubTotal } from './utils';
 
 
 
-const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, refNumber, invoiceNumber, currency }) => {
+const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNumber, currency, projectName }) => {
 
 
     let billingName = clientInfo.name || ' ';
@@ -182,7 +182,7 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, refNumber,
     doc.setFontType('bold');
     doc.text('Invoice #:', marginLeftPage, marginTopPage + 90);
     doc.setFontType('normal');
-    doc.text('0'.repeat(3 - (invoiceNumber + 1).toString().length).concat((invoiceNumber + 1).toString()), marginLeftPage + 35, marginTopPage + 90);
+    doc.text(formatInvoiceNumber(invoiceNumber), marginLeftPage + 35, marginTopPage + 90);
 
     const originalLogoDim = {
         w: 1000,
@@ -226,7 +226,7 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, refNumber,
         doc.setFontSize(10);
         doc.setFontType('bold');
         doc.setTextColor('#000');
-        doc.text('ITEM / SERVICE DETAILS', marginLeftPage, top);
+        doc.text(`ITEM / SERVICE DETAILS - ${projectName}`, marginLeftPage, top);
 
 
         const drawTableHeader = (jspdfDoc,mT) => {

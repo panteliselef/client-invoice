@@ -19,7 +19,6 @@ import '../Assets/styles/dashboard.css';
 
 
 const Dashboard = ({ globalState }) => {
-	console.log(globalState)
 	const [isFetchingData, setIsFetchingData] = useState(false); // hook: for displaying loading spinner while fetching data
 	const [files, setFiles] = useState([]); // hook: array of user's files
 	const user = firebase.auth().currentUser; // ref: firebase.user
@@ -112,7 +111,7 @@ const Dashboard = ({ globalState }) => {
 			<Header />
 			<div className="dashboard">
 				<div className="page-title"> Dashboard</div>
-				<div className="page-subtitle"> Welcome, {user?.displayName}</div>
+				<div className="page-subtitle"> Welcome, {user?.displayName} 🔥</div>
 				<NavLink to="/create-invoice">
 					<div className="btn-rounded" style={{ marginLeft: 0, minWidth: '140px' }}>New Invoice</div>
 				</NavLink>

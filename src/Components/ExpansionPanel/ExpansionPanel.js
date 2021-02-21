@@ -1,6 +1,13 @@
 import React, { useState } from 'react'
 import './ExpansionPanel.css'
 
+
+
+/*
+* ExpansionPanel works like a collapsible.
+* Currently there is no animation
+* 
+*/
 const ExpansionPanel = ({ isOpen1, title, children }) => {
 
     let [isOpen, setOpen] = useState(isOpen1)

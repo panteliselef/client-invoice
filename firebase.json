@@ -29,11 +29,29 @@
         ]
       },
       {
+        "source": "**/*.@(jpg|png|jpeg|gif)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=3300"
+          }
+        ]
+      },
+      {
         "source": "**/*.@(css|js)",
-        "headers":[
+        "headers": [
           {
             "key": "Cache-Control",
             "value": "max-age=3500"
+          }
+        ]
+      },
+      {
+        "source": "/service-worker.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
           }
         ]
       }
