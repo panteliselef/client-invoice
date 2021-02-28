@@ -252,10 +252,10 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
             doc.setFontSize(8);
             doc.setFontType('bold');
             doc.setTextColor('#000');
-            doc.text('Description', itemTableColumn1.start, mT)
-            doc.text('Qty', itemTableColumn2.start, mT)
-            doc.text('Unit Price', itemTableColumn3.start, mT)
-            doc.text('Amount', itemTableColumn4.start, mT)
+            doc.text(translate('description'), itemTableColumn1.start, mT)
+            doc.text(translate('quantity'), itemTableColumn2.start, mT)
+            doc.text(translate('unit_price'), itemTableColumn3.start, mT)
+            doc.text(translate('amount'), itemTableColumn4.start, mT)
             doc.setDrawColor(secondaryColor)
             jspdfDoc.line(itemTableColumn1.start, mT + 5, itemTableColumn1.end, mT + 5, 'F')
             jspdfDoc.line(itemTableColumn2.start, mT + 5, itemTableColumn2.end, mT + 5, 'F')
@@ -395,8 +395,8 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         generateInvoiceSummary(marginTopPage)
     }
 
-    let file = doc.output('blob');
-    // let file = doc.output('dataurlnewwindow');
+    // let file = doc.output('blob');
+    let file = doc.output('dataurlnewwindow');
     return file;
 };
 

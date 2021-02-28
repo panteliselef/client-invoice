@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { NavLink, withRouter } from 'react-router-dom';
 
 // Utils
@@ -71,6 +71,8 @@ const Dashboard = ({ globalState }) => {
 		})
 	}
 
+	const d = useCallback(fetchPdfFromStorage, [user])
+
 	useEffect(
 		() => {
 			const database = firebase.database(); // ref: firebase.database
@@ -84,7 +86,7 @@ const Dashboard = ({ globalState }) => {
 				if (fileObj) {
 					const fileList = await Promise.all(Object.keys(fileObj).map(async (key) => {
 						const data = fileObj[key].metadata;
-						const url = await fetchPdfFromStorage(data.name)
+						const url = await d(data.name) //fetchPdfFromStorage(data.name)
 						return {
 							url,
 							data,
@@ -108,7 +110,7 @@ const Dashboard = ({ globalState }) => {
 				setIsFetchingData(false);
 			};
 		},
-		[globalState]
+		[globalState,d]
 	);
 
 	useEffect(() => {

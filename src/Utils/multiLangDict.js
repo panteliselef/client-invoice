@@ -23,7 +23,8 @@ const dict = {
         "item_details": "ITEM / SERVICE DETAILS",
         "description": "Description",
         "quantity": "Qty",
-        "ammount": "Amount",
+        "unit_price": "Unit Price",
+        "amount": "Amount",
 
         "sub_total": "Sub-Total",
         "fees": "Fees",
@@ -58,7 +59,7 @@ const dict = {
         "description": "Opis",
         "quantity": "Količina",
         "unit_price": "Cena Po Stavki",
-        "ammount": "Ukupno",
+        "amount": "Ukupno",
 
         "sub_total": "Medjuvrednost",
         "fees": "Dodatni Troškovi",

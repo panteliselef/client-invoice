@@ -173,7 +173,7 @@ const Dashboard = (props) => {
 		setInvoiceItems([
 			...invoiceItems,
 			{
-				id: invoiceItems.length + 1,
+				id: Date.now(),
 				description: '',
 				uprice: 0,
 				qty: 1
@@ -262,20 +262,8 @@ const Dashboard = (props) => {
 						/>
 					</div>
 				</div>
-				<div className="button-area">
-					{/* <div onClick={() => addItemtoList()} className="button">
-						+ add Item
-					</div>
-					<div onClick={() => checkPdf({
-						feesPnt: feesPercent,
-						discountAmnt,
-						invoiceItems,
-						clientInfo,
-						projectName: nameOfProject
-					})} className="button">
-						Create PDF
-					</div> */}
-				</div>
+
+
 				{readyToUpload && (
 					<div className="uploading-section">
 						{uploadCompleted ? (
@@ -344,7 +332,12 @@ const Dashboard = (props) => {
 					{invoiceItems.map((item) => {
 						return (
 							<div key={item.id} className="entry">
-								<div>{item.id}</div>
+								<div style={{cursor:'pointer',height:"100%",display:'flex',alignItems:'center'}} onClick={()=> {
+									 const newList = invoiceItems.filter((item_) => item_.id !== item.id);
+ 
+									 setInvoiceItems(newList);
+
+								}}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#192466" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg></div>
 								<div>
 									<input
 										type="text"

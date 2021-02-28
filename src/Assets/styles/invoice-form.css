@@ -16,7 +16,7 @@ form.invoice-form .fees-grid {
 form.invoice-form .item-description-table .entry,
 form.invoice-form .item-description-table .entry-title {
 	display: grid;
-	grid-template-columns: 20px minmax(8rem,auto) 8rem 8rem;
+	grid-template-columns: 24px minmax(8rem,auto) 8rem 8rem;
 	grid-column-gap: .5em;
 	padding: .7em 0em;
 	align-items: center;
