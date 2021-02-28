@@ -26,8 +26,9 @@ export const mainReducer = (state, action) => {
 	}
 };
 
-
-export default {
+const d = {
 	initState,
 	mainReducer
 }
+
+export default d;

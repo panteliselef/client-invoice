@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, Link, withRouter } from 'react-router-dom';
+import { NavLink, withRouter } from 'react-router-dom';
 
 // Utils
-import { bytesToSize } from '../Utils/utils';
+import { bytesToSize, categoryOptions } from '../Utils/utils';
 
 // Components
 import Header from '../Components/Header';
@@ -21,14 +21,18 @@ import '../Assets/styles/dashboard.css';
 const Dashboard = ({ globalState }) => {
 	const [isFetchingData, setIsFetchingData] = useState(false); // hook: for displaying loading spinner while fetching data
 	const [files, setFiles] = useState([]); // hook: array of user's files
+	const [filteredfiles, setFilteredFiles] = useState([]); // hook: array of user's files
 	const user = firebase.auth().currentUser; // ref: firebase.user
 
 
 	const [isDesktop, setDesktop] = useState(window.innerWidth > 800);
 
+	const [activeCategory, setActiveCatergory] = useState(categoryOptions[0])
+
 	const updateMedia = () => {
 		setDesktop(window.innerWidth > 800);
 	};
+
 
 	useEffect(() => {
 		window.addEventListener("resize", updateMedia);
@@ -95,6 +99,8 @@ const Dashboard = ({ globalState }) => {
 					setFiles([]);
 					setIsFetchingData(false);
 				}
+
+				setActiveCatergory(categoryOptions[0])
 			});
 
 			return function cleanup() {
@@ -104,6 +110,21 @@ const Dashboard = ({ globalState }) => {
 		},
 		[globalState]
 	);
+
+	useEffect(() => {
+		console.log('dwad')
+		console.log(activeCategory, files)
+		let ff = [];
+		if (activeCategory === 'Serbian') {
+			ff = files.filter(file => file.data.invoiceCatergory === activeCategory)
+		} else {
+			ff = files.filter(file => file.data.invoiceCatergory === activeCategory || file.data?.invoiceCatergory == null)
+		}
+
+
+
+		setFilteredFiles(ff);
+	}, [activeCategory, files])
 
 
 	return (
@@ -115,6 +136,19 @@ const Dashboard = ({ globalState }) => {
 				<NavLink to="/create-invoice">
 					<div className="btn-rounded" style={{ marginLeft: 0, minWidth: '140px' }}>New Invoice</div>
 				</NavLink>
+
+
+
+				<select onChange={(e) => {
+					setActiveCatergory(e.target.value)
+				}}>
+
+					{categoryOptions.map((option, index) =>
+						<option key={index} value={option}>{option}</option>
+					)}
+				</select>
+
+
 				<div className="files-table">
 					{isDesktop ?
 						(<div className="entry-first">
@@ -129,10 +163,10 @@ const Dashboard = ({ globalState }) => {
 					}
 					{isFetchingData ? (
 						<LoadingAnimation />
-					) : files.length === 0 ? (
+					) : filteredfiles.length === 0 ? (
 						<div style={{ textAlign: "center", margin: "2em" }}>No files uploaded yet</div>
 					) : (
-								files
+								filteredfiles
 									.sort((a, b) => b.data.customMetadata.timestamp - a.data.customMetadata.timestamp)
 									.map(({ id, data, url }) => {
 										let updatedData = new Date(data.updated);
@@ -141,15 +175,13 @@ const Dashboard = ({ globalState }) => {
 												<div>{data.name}</div>
 												<div>{updatedData.toLocaleString()}</div>
 												<div className="number">{bytesToSize(data.size)}</div>
-												<a className="link" href={url} target={'_blank'}>Open</a>
+												<a className="link" href={url} rel="noreferrer" target={'_blank'}>Open</a>
 											</div>
-
 											:
-											<a key={id} href={url} target={'_blank'} className="entry">
+											<a key={id} href={url} target={'_blank'} rel="noreferrer" className="entry">
 												<div>{data.name}</div>
 												<div>{updatedData.toLocaleDateString()}</div>
 											</a>
-
 											;
 									})
 							)}

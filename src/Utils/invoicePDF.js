@@ -1,10 +1,17 @@
 import jsPDF from 'jspdf';
 import { formatForCurrency, formatInvoiceNumber, calculateFees, calculateTotal, calculateSubTotal } from './utils';
+import dictionary from './multiLangDict';
+import Roboto from '../Assets/fonts/Roboto-Regular-normal'
+import RobotoBold from '../Assets/fonts/Roboto-Bold-bold'
 
 
 
-const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNumber, currency, projectName }) => {
+const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNumber, currency, projectName, lang }) => {
 
+    const translate = (key) => {
+        if (lang === 'Serbian') return dictionary.serbian[key]
+        return dictionary.english[key]
+    }
 
     let billingName = clientInfo.name || ' ';
     let billingAddress = clientInfo.address || ' ';
@@ -18,23 +25,23 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         jspdfDoc.setFontSize(10);
         jspdfDoc.setFontType('bold');
         jspdfDoc.setTextColor('#000');
-        jspdfDoc.text('INVOICE TO', marginLeftPage, marginTopPage + 120);
+        jspdfDoc.text(`${translate("invoice_to")}`, marginLeftPage, marginTopPage + 120);
 
         // 'Payment Info' Section
-        jspdfDoc.text('PAYMENT INFO', columnTwoStart, marginTopPage + 120);
+        jspdfDoc.text(`${translate("payment_info")}`, columnTwoStart, marginTopPage + 120);
 
 
         // Invoice Name 
         jspdfDoc.setFontSize(7);
         jspdfDoc.setFontType('bold');
-        jspdfDoc.text('Name :', marginLeftPage, marginTopPage + 140);
-        jspdfDoc.text('Phone Number :', marginLeftPage, marginTopPage + 155);
-        jspdfDoc.text('Email :', marginLeftPage, marginTopPage + 170);
-        jspdfDoc.text('Address :', marginLeftPage, marginTopPage + 185);
-        jspdfDoc.text('Bank Name :', columnTwoStart, marginTopPage + 140);
-        jspdfDoc.text('IBAN :', columnTwoStart, marginTopPage + 155);
-        jspdfDoc.text('SWIFT Code :', columnTwoStart, marginTopPage + 170);
-        jspdfDoc.text('Account Holder :', columnTwoStart, marginTopPage + 185);
+        jspdfDoc.text(`${translate("name")} :`, marginLeftPage, marginTopPage + 140);
+        jspdfDoc.text(`${translate("phone_number")} :`, marginLeftPage, marginTopPage + 155);
+        jspdfDoc.text(`${translate("email")} :`, marginLeftPage, marginTopPage + 170);
+        jspdfDoc.text(`${translate("address")} :`, marginLeftPage, marginTopPage + 185);
+        jspdfDoc.text(`${translate("bank_name")} :`, columnTwoStart, marginTopPage + 140);
+        jspdfDoc.text(`${translate("iban")} :`, columnTwoStart, marginTopPage + 155);
+        jspdfDoc.text(`${translate("swift_code")} :`, columnTwoStart, marginTopPage + 170);
+        jspdfDoc.text(`${translate("account_holder")} :`, columnTwoStart, marginTopPage + 185);
 
 
 
@@ -52,9 +59,9 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         // Bank Name Value
         jspdfDoc.text('Unicredit bank Serbia JSC', columnTwoStart + 60, marginTopPage + 140);
         // Account Number Value
-        jspdfDoc.text('RS35170005003502400104', columnTwoStart + 60, marginTopPage + 155);
+        jspdfDoc.text(translate("iban_value"), columnTwoStart + 60, marginTopPage + 155);
         // Bank Code Value
-        jspdfDoc.text('BACXRSBG', columnTwoStart + 60, marginTopPage + 170);
+        jspdfDoc.text(translate("swift_code_value"), columnTwoStart + 60, marginTopPage + 170);
         // Account Holder Value
         jspdfDoc.text(jspdfDoc.splitTextToSize('ALEX STAVROS TSELEKIDIS PR TWO STUDIO', 100), columnTwoStart + 60, marginTopPage + 185);
 
@@ -79,6 +86,13 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         unit: 'px',
         foqrmat: 'a4'
     });
+
+
+    doc.addFileToVFS('Roboto-Regular.ttf', Roboto)
+    doc.addFileToVFS('Roboto-Bold.ttf', RobotoBold)
+    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal')
+    doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold')
+    doc.setFont('Roboto')
 
     let secondaryColor = '#F48472';
 
@@ -119,70 +133,73 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
     }
 
     // Address
-    doc.setFont('helvetica');
+    // doc.setFont('helvetica');
     doc.setTextColor('#000');
     doc.setFontSize(7);
 
     // Address
     doc.setFontType('bold');
-    doc.text('Address:', marginLeftPage, marginTopPage);
+    doc.text(`${translate("address")}:`, marginLeftPage, marginTopPage + 2);
     doc.setFontType('normal');
-    doc.text('Kralja Milutina 23/23', marginLeftPage + 25, marginTopPage);
+    doc.text('Kralja Milutina 23/23', marginLeftPage + 50, marginTopPage + 2);
 
     // City
-    doc.text('Belgrade, Serbia.', marginLeftPage, marginTopPage + 10);
+    doc.text(translate("city"), marginLeftPage + 50, marginTopPage + 10);
 
     // VAT No
     doc.setFontType('bold');
-    doc.text('VAT No:', marginLeftPage, marginTopPage + 20);
+    doc.text(`${translate("vat_no")}:`, marginLeftPage, marginTopPage + 20);
     doc.setFontType('normal');
-    doc.text('112337268', marginLeftPage + 25, marginTopPage + 20);
+    doc.text('112337268', marginLeftPage + 50, marginTopPage + 20);
 
     // Reg No
     doc.setFontType('bold');
-    doc.text('Reg No:', marginLeftPage, marginTopPage + 30);
+    doc.text(`${translate("reg_no")}:`, marginLeftPage, marginTopPage + 30);
     doc.setFontType('normal');
-    doc.text('66036103', marginLeftPage + 25, marginTopPage + 30);
+    doc.text('66036103', marginLeftPage + 50, marginTopPage + 30);
 
     // Phone 
     doc.setFontType('bold');
-    doc.text('Phone:', marginLeftPage, marginTopPage + 40);
+    doc.text(`${translate("phone")}:`, marginLeftPage, marginTopPage + 40);
     doc.setFontType('normal');
-    doc.text('+38162456234', marginLeftPage + 25, marginTopPage + 40);
+    doc.text('+38162456234', marginLeftPage + 50, marginTopPage + 40);
 
 
     // Email
     doc.setFontType('bold');
-    doc.text('Email:', marginLeftPage, marginTopPage + 50);
+    doc.text(`${translate("email")}:`, marginLeftPage, marginTopPage + 50);
     doc.setFontType('normal');
-    doc.text('hi@two.rs', marginLeftPage + 25, marginTopPage + 50);
+    doc.text('hi@two.rs', marginLeftPage + 50, marginTopPage + 50);
 
     // Website
     doc.setFontType('bold');
-    doc.text('Website:', marginLeftPage, marginTopPage + 60);
+    doc.text(`${translate("website")}:`, marginLeftPage, marginTopPage + 60);
     doc.setFontType('normal');
-    doc.text('www.two.rs', marginLeftPage + 25, marginTopPage + 60);
+    doc.text('www.two.rs', marginLeftPage + 50, marginTopPage + 60);
 
     // Date
     const today = new Date();
     doc.setFontType('bold');
-    doc.text('Date Issued:', marginLeftPage, marginTopPage + 70);
+    doc.text(`${translate("date_issued")}:`, marginLeftPage, marginTopPage + 70);
     doc.setFontType('normal');
-    doc.text(today.toDateString(), marginLeftPage + 35, marginTopPage + 70);
+    doc.text(today.toDateString(), marginLeftPage + 50, marginTopPage + 70);
 
     // Date
-    const todayPlus5 = new Date();
-    todayPlus5.setDate(todayPlus5.getDate() + 5);
-    doc.setFontType('bold');
-    doc.text('Due Date:', marginLeftPage, marginTopPage + 80);
-    doc.setFontType('normal');
-    doc.text(todayPlus5.toDateString(), marginLeftPage + 35, marginTopPage + 80);
+
+    if(lang !== "Serbian") {
+        const todayPlus5 = new Date();
+        todayPlus5.setDate(todayPlus5.getDate() + 5);
+        doc.setFontType('bold');
+        doc.text('Due Date:', marginLeftPage, marginTopPage + 80);
+        doc.setFontType('normal');
+        doc.text(todayPlus5.toDateString(), marginLeftPage + 50, marginTopPage + 80);
+    }
 
     // Invoice Number
     doc.setFontType('bold');
-    doc.text('Invoice #:', marginLeftPage, marginTopPage + 90);
+    doc.text(`${translate("invoice")} #:`, marginLeftPage, marginTopPage + 90);
     doc.setFontType('normal');
-    doc.text(formatInvoiceNumber(invoiceNumber), marginLeftPage + 35, marginTopPage + 90);
+    doc.text(formatInvoiceNumber(invoiceNumber), marginLeftPage + 50, marginTopPage + 90);
 
     const originalLogoDim = {
         w: 1000,
@@ -226,10 +243,10 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         doc.setFontSize(10);
         doc.setFontType('bold');
         doc.setTextColor('#000');
-        doc.text(`ITEM / SERVICE DETAILS - ${projectName}`, marginLeftPage, top);
+        doc.text(projectName ? `${translate("item_details")} - ${projectName}` : translate("item_details"), marginLeftPage, top);
 
 
-        const drawTableHeader = (jspdfDoc,mT) => {
+        const drawTableHeader = (jspdfDoc, mT) => {
             // Table Headers
             doc.setLineWidth(.8)
             doc.setFontSize(8);
@@ -259,10 +276,10 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
             jspdfDoc.setFontSize(7)
             mT -= 4
             const options = { align: 'right' };
-            jspdfDoc.text('' + item.description, itemTableColumn1.start,  mT)
-            jspdfDoc.text('' + item.qty, itemTableColumn2.end,  mT, options)
-            jspdfDoc.text('' + item.uprice + '', itemTableColumn3.end,  mT, options)
-            jspdfDoc.text('' + item.uprice * item.qty + '', itemTableColumn4.end,  mT, options)
+            jspdfDoc.text('' + item.description, itemTableColumn1.start, mT)
+            jspdfDoc.text('' + item.qty, itemTableColumn2.end, mT, options)
+            jspdfDoc.text('' + item.uprice + '', itemTableColumn3.end, mT, options)
+            jspdfDoc.text('' + item.uprice * item.qty + '', itemTableColumn4.end, mT, options)
         }
 
         const nextTableRowIsInBoundaries = (y) => {
@@ -271,7 +288,7 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
 
 
         doc.setLineWidth(.8)
-        drawTableHeader(doc,top + 20)
+        drawTableHeader(doc, top + 20)
         let currH = 25 + 13
         let step = 13;
         let counter = 0;
@@ -283,11 +300,11 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
                 doc.addPage()
                 counter = 0
                 top = marginTopPage
-                currH = 5 + 13 
+                currH = 5 + 13
                 drawTableHeader(doc, top)
             }
-            drawTableRowLine(doc,top + currH + (step * counter))
-            drawTableRowData(doc,top + currH + (step * counter), element)
+            drawTableRowLine(doc, top + currH + (step * counter))
+            drawTableRowData(doc, top + currH + (step * counter), element)
 
             counter++;
         }
@@ -320,23 +337,23 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
 
 
 
-        const currH =  14;
+        const currH = 14;
         const step = 14;
         const arr = [
             {
-                title: 'Sub-Total',
+                title: translate("sub_total"),
                 value: `${formatForCurrency(currency, calculateSubTotal(invoiceItems))}`
             },
             {
-                title: 'Fees',
+                title: translate("fees"),
                 value: `+ ${formatForCurrency(currency, calculateFees(invoiceItems, feesPnt))}`
             },
             {
-                title: 'Discount',
+                title: translate("discount"),
                 value: `- ${formatForCurrency(currency, discountAmnt)}`
             },
             {
-                title: 'Grand Total',
+                title: translate("grand_total"),
                 value: `${formatForCurrency(currency, calculateTotal({ items: invoiceItems, fees: feesPnt, discount: discountAmnt }))}`
             }
 
@@ -359,15 +376,20 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         doc.text('Terms and Conditions', marginLeftPage, top)
         doc.setFontSize(5);
         doc.setFontType('normal');
-        doc.text(doc.splitTextToSize('Notification for exception of VAT payment: VAT tax should not be payed according to subpart 12/3/4/4 of VAT legal act.', 150), marginLeftPage, top + 10)
+
+
+        doc.text(doc.splitTextToSize(translate("term_con_val_1"), 150), marginLeftPage, top + 10)
+        if (lang === "Serbian")
+            doc.text(doc.splitTextToSize(translate("term_con_val_2"), 150), marginLeftPage, top + 16)
+        // doc.text(doc.splitTextToSize('Notification for exception of VAT payment: VAT tax should not be payed according to subpart 12/3/4/4 of VAT legal act.', 150), marginLeftPage, top + 10)
 
     }
 
     const { yEnd } = generateInvoiceItemTable(marginTopPage + 250)
 
-    if(yEnd < 538) {
+    if (yEnd < 538) {
         generateInvoiceSummary(538)
-    }else {
+    } else {
         doc.addPage();
         doc.setLineWidth(.8)
         generateInvoiceSummary(marginTopPage)

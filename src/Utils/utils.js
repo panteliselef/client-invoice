@@ -49,3 +49,8 @@ export const calculateTotal = ({items, fees, discount }) => {
 export const formatInvoiceNumber = (iNumber) => {
 	return '0'.repeat(3 - (iNumber + 1).toString().length).concat((iNumber + 1).toString());
 }
+
+export const categoryOptions = [
+	'International',
+	'Serbian',
+];

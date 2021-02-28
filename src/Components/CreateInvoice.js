@@ -11,7 +11,7 @@ import ExpansionPanel from './ExpansionPanel/ExpansionPanel';
 
 // Utils
 import createInvoice from '../Utils/invoicePDF';
-import { getCurrencySymbol, calculateFees, calculateSubTotal, calculateTotal, formatForCurrency, formatInvoiceNumber } from '../Utils/utils';
+import { getCurrencySymbol, calculateFees, calculateSubTotal, calculateTotal, formatForCurrency, formatInvoiceNumber,categoryOptions} from '../Utils/utils';
 
 // CSS
 import '../Assets/styles/invoice-form.css';
@@ -38,7 +38,12 @@ const Dashboard = (props) => {
 		'EURO',
 		'RSD'
 	];
+
+
+
 	const [activeCurrency, setActiveCurrency] = useState(currencyOptions[0])
+
+	const [activeCategory, setActiveCatergory] = useState(categoryOptions[2])
 
 
 	useEffect(() => {
@@ -70,15 +75,15 @@ const Dashboard = (props) => {
 
 
 	const generatePDFName = (iNumber, projectName) => {
-		return `invoice${formatInvoiceNumber(iNumber)}${projectName.replace(' ','-')}.pdf`;
+		return `invoice${formatInvoiceNumber(iNumber)}${projectName.replace(' ', '-')}.pdf`;
 	}
 
 	const checkForDuplicatePdf = () => {
 		return new Promise((resolve, reject) => {
 			firebaseFiles.once('value', (snapshot) => {
 				snapshot.forEach((child) => {
-					console.log(child.val().metadata.name, generatePDFName(linvoiceNumber,nameOfProject));
-					if (generatePDFName(linvoiceNumber,nameOfProject) === child.val().metadata.name)
+					console.log(child.val().metadata.name, generatePDFName(linvoiceNumber, nameOfProject));
+					if (generatePDFName(linvoiceNumber, nameOfProject) === child.val().metadata.name)
 						reject({ error: new Error('Found duplicate file'), id: child.key });
 				});
 				resolve(true);
@@ -111,14 +116,18 @@ const Dashboard = (props) => {
 	const uploadPDFToDatabase = (metadata) => {
 		let user = firebase.auth().currentUser;
 		database.ref(`/files/${user.uid}/invoices/`).push({
-			metadata: metadata
+			metadata: {
+				...metadata,
+				invoiceCatergory: activeCategory,
+				invoiceCurrency: activeCurrency
+			}
 		});
 	};
 
 	const uploadPDFToStorage = (file) => {
 		let user = firebase.auth().currentUser;
 
-		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${generatePDFName(linvoiceNumber,nameOfProject)}`);
+		let storageRef = firebase.storage().ref(`/${user.uid}/invoices/${generatePDFName(linvoiceNumber, nameOfProject)}`);
 		console.log(firebase.auth().currentUser);
 
 		let metadata = {
@@ -179,6 +188,7 @@ const Dashboard = (props) => {
 
 		invoiceData.invoiceNumber = linvoiceNumber;
 		invoiceData.currency = activeCurrency;
+		invoiceData.lang = activeCategory;
 
 		checkForDuplicatePdf()
 			.then((msg) => {
@@ -253,7 +263,7 @@ const Dashboard = (props) => {
 					</div>
 				</div>
 				<div className="button-area">
-					<div onClick={() => addItemtoList()} className="button">
+					{/* <div onClick={() => addItemtoList()} className="button">
 						+ add Item
 					</div>
 					<div onClick={() => checkPdf({
@@ -264,7 +274,7 @@ const Dashboard = (props) => {
 						projectName: nameOfProject
 					})} className="button">
 						Create PDF
-					</div>
+					</div> */}
 				</div>
 				{readyToUpload && (
 					<div className="uploading-section">
@@ -284,7 +294,8 @@ const Dashboard = (props) => {
 
 				<div style={{
 					display: 'flex',
-					justifyContent: 'space-between'
+					justifyContent: 'space-between',
+					flexWrap:'wrap'
 				}}>
 
 					<input className="input-with-label"
@@ -295,10 +306,25 @@ const Dashboard = (props) => {
 					/>
 
 
-					<select onChange={(e) => {
+					<select style={{ marginLeft: 'auto' }} onChange={(e) => {
+						const val = e.target.value;
+						if (val === 'Serbian') {
+							setActiveCurrency('RSD')
+						}
+						setActiveCatergory(e.target.value)
+					}}>
+						{categoryOptions.map((option, index) =>
+							<option key={index} value={option}>{option}</option>
+						)}
+					</select>
+
+					<select disabled={activeCategory === 'Serbian'} value={activeCurrency} onChange={(e) => {
+						console.log(e.target.value)
 						setActiveCurrency(e.target.value)
 					}}>
-						{currencyOptions.map((option, index) =>
+
+						<option value={activeCurrency}>{activeCurrency}</option>
+						{currencyOptions.filter(option => option !== activeCurrency).map((option, index) =>
 							<option key={index} value={option}>{option}</option>
 						)}
 					</select>
@@ -351,7 +377,11 @@ const Dashboard = (props) => {
 				</div>
 
 
-
+				<div className="button-area">
+					<div onClick={() => addItemtoList()} className="button">
+						+ add Item
+					</div>
+				</div>
 				<div className="client-total-bill">
 					<div className='emphasis'>Sub Total {formatForCurrency(activeCurrency, calculateSubTotal(invoiceItems))}</div>
 				</div>
@@ -437,8 +467,23 @@ const Dashboard = (props) => {
 
 
 				</div>
+
+				<div style={{
+					display: 'flex', justifyContent: 'center', width:
+						'100%'
+				}}>
+					<div onClick={() => checkPdf({
+						feesPnt: feesPercent,
+						discountAmnt,
+						invoiceItems,
+						clientInfo,
+						projectName: nameOfProject
+					})} className="button">
+						Create PDF
+					</div>
+				</div>
 			</form>
-		</div>
+		</div >
 	);
 };
 export default Dashboard;

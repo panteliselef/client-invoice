@@ -165,13 +165,19 @@ form.invoice-form input.input-with-label  {
 
 	font-weight: 500;
 	width: 100%;
+	min-width: 200px;
 	max-width: 20rem;
 	background-color: rgba(198, 175, 255, 0.3);
 }
 
-form.invoice-form .input-with-label input::placeholder {
+/* form.invoice-form .input-with-label input::placeholder {
 	color: #8c99ff;
 }
+
+form.invoice-form .input-with-label input {
+	min-width: 500px;
+} */
+
 
 form.invoice-form .input-with-label .file-extention {
 	font-weight: 500;
