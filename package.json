@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "firebase": "^8.2.9",
-    "jspdf": "^1.5.3",
+    "jspdf": "^2.3.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-firebase-hooks": "^2.0.0",
