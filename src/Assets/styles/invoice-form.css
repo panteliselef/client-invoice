@@ -170,6 +170,20 @@ form.invoice-form input.input-with-label  {
 	background-color: rgba(198, 175, 255, 0.3);
 }
 
+form.invoice-form label {
+	color: #ED4E58;
+}
+
+form.invoice-form input.input-with-label:disabled {
+	background-color: rgb(226, 226, 226);
+}
+form.invoice-form input.input-with-label.error {
+	border: 2px solid #ED4E58;
+}
+form.invoice-form input.input-with-label.error::placeholder {
+	color: #ED4E58;
+}
+
 /* form.invoice-form .input-with-label input::placeholder {
 	color: #8c99ff;
 }

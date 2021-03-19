@@ -17,8 +17,27 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
     let billingAddress = clientInfo.address || ' ';
     let billingEmail = clientInfo.email || ' ';
     let billingPhone = clientInfo.phone || ' ';
+    let billingPlace = clientInfo.place_issued || ' ';
+    let billingPIB = clientInfo.c_pib || ' ';
+    let billingMB = clientInfo.c_mb || ' ';
 
     const generateInvoicePaymentInfo = (jspdfDoc) => {
+
+        const generateEntry = (label, value,left,top,right) => {
+            jspdfDoc.setFontSize(7);
+            jspdfDoc.setFontType('bold');
+            jspdfDoc.text(`${label} :`, left, top);
+            // Invoice Address Value
+            jspdfDoc.setFontType('normal');
+            jspdfDoc.text(jspdfDoc.splitTextToSize(value, 100), left + 60, top);
+
+            jspdfDoc.setDrawColor('#B8B9BC')
+            jspdfDoc.setLineWidth(.5)
+            jspdfDoc.line(left + 60, top + jspdfDoc.splitTextToSize(value, 100).length * 6, right, top + jspdfDoc.splitTextToSize(value, 100).length * 6, 'F')
+            return top +  jspdfDoc.splitTextToSize(value, 100).length * 6;
+        }
+
+
         jspdfDoc.setLineHeightFactor(1.5)
 
         // 'Invoice To' Section
@@ -30,56 +49,22 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         // 'Payment Info' Section
         jspdfDoc.text(`${translate("payment_info")}`, columnTwoStart, marginTopPage + 120);
 
+        generateEntry(translate("name"),billingName,marginLeftPage,marginTopPage + 140,columnOneEnd);
+        generateEntry(translate("phone_number"),billingPhone,marginLeftPage,marginTopPage + 155,columnOneEnd);
+        generateEntry(translate("email"),billingEmail,marginLeftPage,marginTopPage + 170,columnOneEnd);
+        const addressH = generateEntry(translate("address"),billingAddress,marginLeftPage,marginTopPage + 185,columnOneEnd);
 
-        // Invoice Name 
-        jspdfDoc.setFontSize(7);
-        jspdfDoc.setFontType('bold');
-        jspdfDoc.text(`${translate("name")} :`, marginLeftPage, marginTopPage + 140);
-        jspdfDoc.text(`${translate("phone_number")} :`, marginLeftPage, marginTopPage + 155);
-        jspdfDoc.text(`${translate("email")} :`, marginLeftPage, marginTopPage + 170);
-        jspdfDoc.text(`${translate("address")} :`, marginLeftPage, marginTopPage + 185);
-        jspdfDoc.text(`${translate("bank_name")} :`, columnTwoStart, marginTopPage + 140);
-        jspdfDoc.text(`${translate("iban")} :`, columnTwoStart, marginTopPage + 155);
-        jspdfDoc.text(`${translate("swift_code")} :`, columnTwoStart, marginTopPage + 170);
-        jspdfDoc.text(`${translate("account_holder")} :`, columnTwoStart, marginTopPage + 185);
+        if(lang === "Serbian") {
+            const pibH = generateEntry("PIB",billingPIB,marginLeftPage,addressH + 10,columnOneEnd);
+            generateEntry("MB",billingMB,marginLeftPage,pibH + 10,columnOneEnd);
+        }
 
 
-
-        // Set font weight to normal 
-        jspdfDoc.setFontType('normal');
-
-        // Invoice Name Value
-        jspdfDoc.text(billingName, marginLeftPage + 60, marginTopPage + 140);
-        // Invoice Phone Value
-        jspdfDoc.text(billingPhone, marginLeftPage + 60, marginTopPage + 155);
-        // Invoice Email Value
-        jspdfDoc.text(billingEmail, marginLeftPage + 60, marginTopPage + 170);
-        // Invoice Address Value
-        jspdfDoc.text(jspdfDoc.splitTextToSize(billingAddress, 100), marginLeftPage + 60, marginTopPage + 185);
-        // Bank Name Value
-        jspdfDoc.text('Unicredit bank Serbia JSC', columnTwoStart + 60, marginTopPage + 140);
-        // Account Number Value
-        jspdfDoc.text(translate("iban_value"), columnTwoStart + 60, marginTopPage + 155);
-        // Bank Code Value
-        jspdfDoc.text(translate("swift_code_value"), columnTwoStart + 60, marginTopPage + 170);
-        // Account Holder Value
-        jspdfDoc.text(jspdfDoc.splitTextToSize('ALEX STAVROS TSELEKIDIS PR TWO STUDIO', 100), columnTwoStart + 60, marginTopPage + 185);
-
-
-
-        // Small Dividers Left Column
-        jspdfDoc.setDrawColor('#B8B9BC')
-        jspdfDoc.setLineWidth(.5)
-        jspdfDoc.line(marginLeftPage + 60, marginTopPage + 145, columnOneEnd, marginTopPage + 145, 'F')
-        jspdfDoc.line(marginLeftPage + 60, marginTopPage + 160, columnOneEnd, marginTopPage + 160, 'F')
-        jspdfDoc.line(marginLeftPage + 60, marginTopPage + 175, columnOneEnd, marginTopPage + 175, 'F')
-        jspdfDoc.line(marginLeftPage + 60, marginTopPage + 185 + jspdfDoc.splitTextToSize(billingAddress, 100).length * 6, columnOneEnd, marginTopPage + 185 + jspdfDoc.splitTextToSize(billingAddress, 100).length * 6, 'F')
-        // Small Dividers Right Column
-        jspdfDoc.line(columnTwoStart + 60, marginTopPage + 145, marginRightPage, marginTopPage + 145, 'F')
-        jspdfDoc.line(columnTwoStart + 60, marginTopPage + 160, marginRightPage, marginTopPage + 160, 'F')
-        jspdfDoc.line(columnTwoStart + 60, marginTopPage + 175, marginRightPage, marginTopPage + 175, 'F')
-        jspdfDoc.line(columnTwoStart + 60, marginTopPage + 190 + jspdfDoc.splitTextToSize(billingAddress, 100).length * 6, marginRightPage, marginTopPage + 190 + jspdfDoc.splitTextToSize(billingAddress, 100).length * 6, 'F')
-    };
+        generateEntry(translate("bank_name"),'Unicredit bank Serbia JSC',columnTwoStart,marginTopPage + 140,marginRightPage);
+        generateEntry(translate("iban"),translate("iban_value"),columnTwoStart,marginTopPage + 155,marginRightPage);
+        generateEntry(translate("swift_code"),translate("swift_code_value"),columnTwoStart,marginTopPage + 170,marginRightPage);
+        generateEntry(translate("account_holder"),'ALEX STAVROS TSELEKIDIS PR TWO STUDIO',columnTwoStart,marginTopPage + 185,marginRightPage);
+  };
 
     let doc = new jsPDF({
         orientation: 'p',
@@ -181,25 +166,32 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
     const today = new Date();
     doc.setFontType('bold');
     doc.text(`${translate("date_issued")}:`, marginLeftPage, marginTopPage + 70);
+    doc.text(`${translate("date_d")}:`, marginLeftPage, marginTopPage + 80);
     doc.setFontType('normal');
-    doc.text(today.toDateString(), marginLeftPage + 50, marginTopPage + 70);
 
-    // Date
-
-    if(lang !== "Serbian") {
+    if (lang !== "Serbian") {
         const todayPlus5 = new Date();
         todayPlus5.setDate(todayPlus5.getDate() + 5);
-        doc.setFontType('bold');
-        doc.text('Due Date:', marginLeftPage, marginTopPage + 80);
-        doc.setFontType('normal');
+        doc.text(today.toDateString(), marginLeftPage + 50, marginTopPage + 70);
         doc.text(todayPlus5.toDateString(), marginLeftPage + 50, marginTopPage + 80);
+    }else {
+        const dateStr = today.toLocaleDateString('sr-Latn',{ weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' }).replaceAll(',',"").replaceAll(".","")
+        doc.text(dateStr, marginLeftPage + 50, marginTopPage + 70);
+        doc.text(dateStr, marginLeftPage + 50, marginTopPage + 80);
+
+
+        doc.setFontType('bold');
+        doc.text(`${translate("place_issued")}:`, marginLeftPage, marginTopPage + 90);
+        doc.setFontType('normal');
+        doc.text(billingPlace, marginLeftPage + 50, marginTopPage + 90);
+        
     }
 
     // Invoice Number
     doc.setFontType('bold');
-    doc.text(`${translate("invoice")} #:`, marginLeftPage, marginTopPage + 90);
+    doc.text(`${translate("invoice")} #:`, marginLeftPage, marginTopPage + 100);
     doc.setFontType('normal');
-    doc.text(formatInvoiceNumber(invoiceNumber), marginLeftPage + 50, marginTopPage + 90);
+    doc.text(formatInvoiceNumber(invoiceNumber), marginLeftPage + 50, marginTopPage + 100);
 
     const originalLogoDim = {
         w: 1000,
@@ -219,11 +211,11 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
     // Dividers
     doc.setDrawColor('#ECECEE')
     doc.setLineWidth(1)
-    doc.line(marginLeftPage, marginTopPage + 100, columnOneEnd, marginTopPage + 100, 'F')
-    doc.line(columnTwoStart, marginTopPage + 100, marginRightPage, marginTopPage + 100, 'F')
+    doc.line(marginLeftPage, marginTopPage + 105, columnOneEnd, marginTopPage + 105, 'F')
+    doc.line(columnTwoStart, marginTopPage + 105, marginRightPage, marginTopPage + 105, 'F')
     doc.setDrawColor(secondaryColor)
-    doc.line(marginLeftPage, marginTopPage + 100, marginLeftPage + 30, marginTopPage + 100, 'F')
-    doc.line(columnTwoStart, marginTopPage + 100, columnTwoStart + 30, marginTopPage + 100, 'F')
+    doc.line(marginLeftPage, marginTopPage + 105, marginLeftPage + 30, marginTopPage + 105, 'F')
+    doc.line(columnTwoStart, marginTopPage + 105, columnTwoStart + 30, marginTopPage + 105, 'F')
 
 
     generateInvoicePaymentInfo(doc);
@@ -330,9 +322,18 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         const drawTotalRowData = (jspdfDoc, mT, item) => {
             jspdfDoc.setFontType('bold')
             jspdfDoc.setFontSize(8)
+            let prevColor;
+            if(item.color) {
+                prevColor = jspdfDoc.getTextColor()
+                jspdfDoc.setTextColor(item.color)
+            }
             mT -= 4;
             jspdfDoc.text(item.title, itemTableColumn2.start, top + mT)
             jspdfDoc.text(item.value, itemTableColumn4.end, top + mT, { align: 'right' })
+
+            if(item.color) {
+                jspdfDoc.setTextColor(prevColor)
+            }
         }
 
 
@@ -354,6 +355,7 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
             },
             {
                 title: translate("grand_total"),
+                color: secondaryColor,
                 value: `${formatForCurrency(currency, calculateTotal({ items: invoiceItems, fees: feesPnt, discount: discountAmnt }))}`
             }
 
@@ -395,8 +397,8 @@ const createPDF = ({ invoiceItems, feesPnt, discountAmnt, clientInfo, invoiceNum
         generateInvoiceSummary(marginTopPage)
     }
 
-    // let file = doc.output('blob');
-    let file = doc.output('dataurlnewwindow');
+    let file = doc.output('blob');
+    // let file = doc.output('dataurlnewwindow');
     return file;
 };
 

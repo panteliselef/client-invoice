@@ -11,7 +11,7 @@ import ExpansionPanel from './ExpansionPanel/ExpansionPanel';
 
 // Utils
 import createInvoice from '../Utils/invoicePDF';
-import { getCurrencySymbol, calculateFees, calculateSubTotal, calculateTotal, formatForCurrency, formatInvoiceNumber,categoryOptions} from '../Utils/utils';
+import { getCurrencySymbol, calculateFees, calculateSubTotal, calculateTotal, formatForCurrency, formatInvoiceNumber, categoryOptions } from '../Utils/utils';
 
 // CSS
 import '../Assets/styles/invoice-form.css';
@@ -25,12 +25,16 @@ const Dashboard = (props) => {
 	const database = firebase.database();
 
 	const [linvoiceNumber, setlInvoiceNumber] = useState('');
+	const [refTolInvoiceNumber,setRefTolInvoiceNumber] = useState();
 	const firebaseFiles = database.ref(`/files/${props.uid}/invoices`);
 	const [clientInfo, setClientInfo] = useState({
 		name: '',
 		address: '',
 		phone: '',
-		email: ''
+		email: '',
+		place_issued: '',
+		c_pib: '',
+		c_mb: ''
 	});
 
 	const currencyOptions = [
@@ -43,18 +47,19 @@ const Dashboard = (props) => {
 
 	const [activeCurrency, setActiveCurrency] = useState(currencyOptions[0])
 
-	const [activeCategory, setActiveCatergory] = useState(categoryOptions[2])
+	const [activeCategory, setActiveCatergory] = useState(categoryOptions[0])
 
-
-	useEffect(() => {
-		// firebase.database().ref('/appInfo/lrefNumber').once('value', (snapshot) => {
-		// 	setlRefNumber(snapshot.val());
-		// });
-
-		firebase.database().ref('/appInfo/linvoiceNumber').once('value', (snapshot) => {
+	useEffect(()=> {
+		refTolInvoiceNumber && refTolInvoiceNumber.once('value', (snapshot) => {
+			console.log('dwaddw', snapshot.val())
 			setlInvoiceNumber(snapshot.val());
 		});
-	}, []);
+	},[refTolInvoiceNumber])
+
+	useEffect(() => {
+		const { uid } = props;
+		setRefTolInvoiceNumber(firebase.database().ref(`users/${uid}/appInfo/linvoiceNumber`));
+	}, [props]);
 
 	const [invoiceItems, setInvoiceItems] = useState([
 		{
@@ -66,7 +71,9 @@ const Dashboard = (props) => {
 	]);
 
 	const [nameOfProject, setNameOfProject] = useState('');
+	const [isEverythingDisabled, setDisabled] = useState(false);
 	const [readyToUpload, setReadyToUpload] = useState(false);
+	const [showErrors, setShowErrors] = useState(false);
 	const [uploadedPercentage, setUploadedPercentage] = useState(0);
 	const [uploadCompleted, setUploadCompleted] = useState(false);
 
@@ -115,6 +122,12 @@ const Dashboard = (props) => {
 
 	const uploadPDFToDatabase = (metadata) => {
 		let user = firebase.auth().currentUser;
+
+		console.log(metadata = {
+			...metadata,
+			invoiceCatergory: activeCategory,
+			invoiceCurrency: activeCurrency
+		})
 		database.ref(`/files/${user.uid}/invoices/`).push({
 			metadata: {
 				...metadata,
@@ -148,6 +161,7 @@ const Dashboard = (props) => {
 			},
 			function error(err) {
 				console.error(err);
+				setDisabled(false)
 			},
 			function completed() {
 				document.getElementById('progress-bar-colored').style.backgroundColor = '#192466';
@@ -190,14 +204,18 @@ const Dashboard = (props) => {
 		invoiceData.currency = activeCurrency;
 		invoiceData.lang = activeCategory;
 
+		if (!nameOfProject) {
+			setShowErrors(true)
+			return
+		}
+
+		setDisabled(true)
+
 		checkForDuplicatePdf()
 			.then((msg) => {
 				console.log('SUCESS', msg);
 				let file = createInvoice(invoiceData)
-
-				// firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
-				firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
-
+				refTolInvoiceNumber.set(linvoiceNumber + 1);
 				uploadPDF(file);
 			})
 			.catch((obj) => {
@@ -206,10 +224,7 @@ const Dashboard = (props) => {
 					let file = createInvoice(invoiceData)
 					let fileToBeDeleted = database.ref(`/files/${props.uid}/invoices/${obj.id}`);
 					fileToBeDeleted.remove().then((val) => {
-
-						// firebase.database().ref('/appInfo/lrefNumber').set(lrefNumber + 1);
-						firebase.database().ref('/appInfo/linvoiceNumber').set(linvoiceNumber + 1);
-
+						refTolInvoiceNumber.set(linvoiceNumber + 1);
 						uploadPDF(file);
 					});
 				} else {
@@ -228,13 +243,25 @@ const Dashboard = (props) => {
 				<div style={{ display: 'none' }}>
 					<img id="img-logo" width="100" height="100" src={companyLogo} alt="invisible" />
 				</div>
-				<div style={{ display: 'flex', alignItems: 'center' }}>
+				<div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
 					<NavLink to="/dashboard">
 						<img src={arrowBox} width="30" height="30" alt='go-back-arrow' />
 					</NavLink>
-					<div className="page-title" style={{ marginLeft: '1em' }}>
+					<div className="page-title" style={{ marginLeft: '.5rem' }}>
 						Client Info
 					</div>
+
+					<select style={{ marginLeft: 'auto', padding: '.5rem' }} onChange={(e) => {
+						const val = e.target.value;
+						if (val === 'Serbian') {
+							setActiveCurrency('RSD')
+						}
+						setActiveCatergory(e.target.value)
+					}}>
+						{categoryOptions.map((option, index) =>
+							<option key={index} value={option}>{option}</option>
+						)}
+					</select>
 				</div>
 				<div className="client-info-inputs">
 					<div className="inputs">
@@ -261,52 +288,58 @@ const Dashboard = (props) => {
 							type="tel"
 						/>
 					</div>
-				</div>
 
 
-				{readyToUpload && (
-					<div className="uploading-section">
-						{uploadCompleted ? (
-							<div>
-								<NavLink to="/dashboard">Completed</NavLink>
-							</div>
-						) : (
-								<div>Uploading</div>
-							)}
+					<h2 style={{ display: activeCategory !== 'Serbian' && 'none' }}>Serbian Info</h2>
+					<div className="inputs" style={{ display: activeCategory !== 'Serbian' && 'none' }}>
 
-						<div className="progress-bar" style={{ marginRight: '2em' }}>
-							<div style={{ width: uploadedPercentage }} id="progress-bar-colored" />
-						</div>
+						<input
+							onChange={(e) => setClientInfo({ ...clientInfo, place_issued: e.target.value })}
+							value={clientInfo.place_issued}
+							placeholder="Place Issued"
+							type="text"
+						/>
+
+						<input
+							onChange={(e) => setClientInfo({ ...clientInfo, c_pib: e.target.value })}
+							value={clientInfo.c_pib}
+							placeholder="Client PIB"
+							type="text"
+						/>
+
+						<input
+							onChange={(e) => setClientInfo({ ...clientInfo, c_mb: e.target.value })}
+							value={clientInfo.c_mb}
+							placeholder="Client MB"
+							type="text"
+						/>
 					</div>
-				)}
+
+
+				</div>
 
 				<div style={{
 					display: 'flex',
+					alignItems: 'center',
 					justifyContent: 'space-between',
-					flexWrap:'wrap'
+					flexWrap: 'wrap'
 				}}>
 
-					<input className="input-with-label"
+					<input
 						id="name-of-project"
 						placeholder="Project Name"
+						required={true}
+						disabled={isEverythingDisabled}
+						className={(!nameOfProject && showErrors) ? 'input-with-label error' : 'input-with-label'}
 						onChange={(e) => setNameOfProject(e.target.value)}
 						value={nameOfProject}
 					/>
+					{
+						(!nameOfProject && showErrors) && <label style={{ marginLeft: '1rem' }} htmlFor="name-of-project">Please add project title</label>
+					}
 
 
-					<select style={{ marginLeft: 'auto' }} onChange={(e) => {
-						const val = e.target.value;
-						if (val === 'Serbian') {
-							setActiveCurrency('RSD')
-						}
-						setActiveCatergory(e.target.value)
-					}}>
-						{categoryOptions.map((option, index) =>
-							<option key={index} value={option}>{option}</option>
-						)}
-					</select>
-
-					<select disabled={activeCategory === 'Serbian'} value={activeCurrency} onChange={(e) => {
+					<select disabled={activeCategory === 'Serbian'} style={{ marginTop: '.4rem', marginLeft: 'auto', padding: '.5rem' }} value={activeCurrency} onChange={(e) => {
 						console.log(e.target.value)
 						setActiveCurrency(e.target.value)
 					}}>
@@ -332,12 +365,12 @@ const Dashboard = (props) => {
 					{invoiceItems.map((item) => {
 						return (
 							<div key={item.id} className="entry">
-								<div style={{cursor:'pointer',height:"100%",display:'flex',alignItems:'center'}} onClick={()=> {
-									 const newList = invoiceItems.filter((item_) => item_.id !== item.id);
- 
-									 setInvoiceItems(newList);
+								<div style={{ cursor: 'pointer', height: "100%", display: 'flex', alignItems: 'center' }} onClick={() => {
+									const newList = invoiceItems.filter((item_) => item_.id !== item.id);
 
-								}}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#192466" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg></div>
+									setInvoiceItems(newList);
+
+								}}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#192466" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none" /><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z" /></svg></div>
 								<div>
 									<input
 										type="text"
@@ -465,15 +498,34 @@ const Dashboard = (props) => {
 					display: 'flex', justifyContent: 'center', width:
 						'100%'
 				}}>
-					<div onClick={() => checkPdf({
-						feesPnt: feesPercent,
-						discountAmnt,
-						invoiceItems,
-						clientInfo,
-						projectName: nameOfProject
-					})} className="button">
-						Create PDF
-					</div>
+
+
+					{readyToUpload ? (
+						<div className="uploading-section">
+							{uploadCompleted ? (
+								<div>
+									<NavLink to="/dashboard">Completed</NavLink>
+								</div>
+							) : (
+								<div>Uploading</div>
+							)}
+
+							<div className="progress-bar" style={{ marginRight: '2em' }}>
+								<div style={{ width: uploadedPercentage }} id="progress-bar-colored" />
+							</div>
+						</div>
+					) : (
+						<div onClick={() => checkPdf({
+							feesPnt: feesPercent,
+							discountAmnt,
+							invoiceItems,
+							clientInfo,
+							projectName: nameOfProject
+						})} className="button">
+							Create PDF
+						</div>
+
+					)}
 				</div>
 			</form>
 		</div >
