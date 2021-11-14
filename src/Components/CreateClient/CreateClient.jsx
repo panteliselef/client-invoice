@@ -19,9 +19,10 @@ const CreateClient = (props) => {
 
 
   const database = firebase.database();
-  const firebaseClients = database.ref(`/clients/${props.uid}/`);
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('Select Client');
+
+  const [formIsDirty, setFormDirty] = useState(false);
 
   const [formError, setFormError] = useState(undefined);
   const [formSuccess, setFormSuccess] = useState(undefined);
@@ -41,6 +42,7 @@ const CreateClient = (props) => {
   const [wantsToUpdateClient, setWantsToUpdateClient] = useState(false);
 
   useEffect(() => {
+    const firebaseClients = database.ref(`/clients/${props.uid}/`);
     const fetchAllClients = () => {
       let clients = []
       firebaseClients.once('value', (snapshot) => {
@@ -52,7 +54,7 @@ const CreateClient = (props) => {
       });
     };
     fetchAllClients()
-  }, [props, firebaseClients]);
+  }, [props, database]);
 
 
   const addClientInfo = () => {
@@ -60,7 +62,14 @@ const CreateClient = (props) => {
       setFormError('Field "Name" is empty')
       return;
     }
-    database.ref(`/clients/${uid}`).push(clientInfo);
+    if (!formIsDirty) return
+    database.ref(`/clients/${uid}`)
+      .push(clientInfo)
+      .then(() => {
+        setFormSuccess('Added Client Info')
+        setClientInfo(emptyClientInfo)
+      })
+    setFormDirty(false)
   }
 
   const resetClientSelection = (e) => {
@@ -79,14 +88,30 @@ const CreateClient = (props) => {
     setWantsToUpdateClient(true)
   }
 
+  useEffect(() => {
+    
+    setFormError(undefined)
+    setFormSuccess(undefined)
+
+  },[formIsDirty])
+
   const updateClientInfo = (e) => {
     if (clientInfo.name.trim() === '') {
       setFormError('Field "Name" is empty')
       return;
     }
+    if (!formIsDirty) return
     database.ref(`/clients/${uid}/${selectedClient}`)
       .update(clientInfo)
-      .then(() => setFormSuccess('Updated Client Info'))
+      .then(() => {
+        setFormSuccess('Updated Client Info')
+      })
+    setFormDirty(false)
+  }
+
+  const onInputChange = (itemToUpdate) => {
+    setClientInfo({ ...clientInfo, ...itemToUpdate })
+    setFormDirty(true);
   }
 
   return (
@@ -104,7 +129,7 @@ const CreateClient = (props) => {
           </div>
         </div>
         <div className="h-flex" style={{ gap: '10px' }}>
-          <select style={{ padding: '.5rem' }} value={selectedClient} onChange={fillClientInfoOfClient}>
+          <select style={{ padding: '.5rem' }} disabled={clients.length === 0} value={selectedClient} onChange={fillClientInfoOfClient}>
             <option value="Select Client" disabled={true}>Select Client</option>
             {clients.map(({ key, val }) =>
               <option key={key} value={key}>{val.name}</option>
@@ -116,23 +141,23 @@ const CreateClient = (props) => {
         <div className="client-info-inputs">
           <div className="inputs">
             <input
-              onChange={(e) => setClientInfo({ ...clientInfo, name: e.target.value })}
+              onChange={(e) => onInputChange({ name: e.target.value })}
               value={clientInfo.name}
               placeholder="Name"
             />
             <input
-              onChange={(e) => setClientInfo({ ...clientInfo, email: e.target.value })}
+              onChange={(e) => onInputChange({ email: e.target.value })}
               value={clientInfo.email}
               placeholder="Email"
               type="email"
             />
             <input
-              onChange={(e) => setClientInfo({ ...clientInfo, address: e.target.value })}
+              onChange={(e) => onInputChange({ address: e.target.value })}
               value={clientInfo.address}
               placeholder="Address"
             />
             <input
-              onChange={(e) => setClientInfo({ ...clientInfo, phone: e.target.value })}
+              onChange={(e) => onInputChange({ phone: e.target.value })}
               value={clientInfo.phone}
               placeholder="Phone"
               type="tel"
@@ -144,21 +169,21 @@ const CreateClient = (props) => {
           <div className="inputs">
 
             <input
-              onChange={(e) => setClientInfo({ ...clientInfo, place_issued: e.target.value })}
+              onChange={(e) => onInputChange({ place_issued: e.target.value })}
               value={clientInfo.place_issued}
               placeholder="Place Issued"
               type="text"
             />
 
             <input
-              onChange={(e) => setClientInfo({ ...clientInfo, c_pib: e.target.value })}
+              onChange={(e) => onInputChange({ c_pib: e.target.value })}
               value={clientInfo.c_pib}
               placeholder="Client PIB"
               type="text"
             />
 
             <input
-              onChange={(e) => setClientInfo({ ...clientInfo, c_mb: e.target.value })}
+              onChange={(e) => onInputChange({ c_mb: e.target.value })}
               value={clientInfo.c_mb}
               placeholder="Client MB"
               type="text"
@@ -167,9 +192,9 @@ const CreateClient = (props) => {
 
           <div className="v-flex center align-center">
             {wantsToUpdateClient ?
-              <div className="btn-rounded dark" style={{ minWidth: '140px' }} onClick={() => updateClientInfo()}>Update</div>
+              <div className="btn-rounded dark" style={{ minWidth: '140px' }} onClick={() => updateClientInfo()}>{formSuccess ? 'Updated' : 'Update'}</div>
               :
-              <div className="btn-rounded dark" style={{ minWidth: '140px' }} onClick={() => addClientInfo()}>Add</div>}
+              <div className="btn-rounded dark" style={{ minWidth: '140px' }} onClick={() => addClientInfo()}>{formSuccess ? 'Added' : 'Add'}</div>}
 
             {formError &&
               <label style={{ marginLeft: '1rem' }} className={'error'}>{formError}</label>

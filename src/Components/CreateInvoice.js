@@ -20,11 +20,9 @@ import '../Assets/styles/invoice-form.css';
 import companyLogo from '../Assets/twologo.png';
 import arrowBox from '../Assets/arrow-left-box.svg';
 
-
 const CreateInvoice = (props) => {
   const database = firebase.database();
   const firebaseFiles = database.ref(`/files/${props.uid}/invoices`);
-  const firebaseClients = database.ref(`/clients/${props.uid}/`);
 
   const currencyOptions = [
     'USD',
@@ -58,9 +56,10 @@ const CreateInvoice = (props) => {
 
   useEffect(() => {
     const { uid } = props;
+    const firebaseClientsRef = database.ref(`/clients/${props.uid}/`);
     const fetchAllClients = () => {
       let clients = []
-      firebaseClients.once('value', (snapshot) => {
+      firebaseClientsRef.once('value', (snapshot) => {
         snapshot.forEach((child) => {
           clients.push(child.val());
         });
@@ -71,7 +70,7 @@ const CreateInvoice = (props) => {
 
     setRefTolInvoiceNumber(firebase.database().ref(`users/${uid}/appInfo/linvoiceNumber`));
     fetchAllClients()
-  }, [props,firebaseClients]);
+  }, [props,database]);
 
   const [invoiceItems, setInvoiceItems] = useState([
     {
