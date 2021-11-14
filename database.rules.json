@@ -15,6 +15,12 @@
         ".write": "$user_id === auth.uid",
       	".read": "$user_id === auth.uid"
       }
+    },
+    "clients":{
+    	"$user_id": {
+        ".write": "$user_id === auth.uid",
+      	".read": "$user_id === auth.uid"
+      }
     }
   }
 }

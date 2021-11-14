@@ -13,6 +13,7 @@ import LoginPage from './Components/LoginPage';
 import SignupPage from './Components/SignupPage';
 import Dashboard from './Components/Dashboard';
 import CreateInvoice from './Components/CreateInvoice';
+import CreateClient from './Components/CreateClient';
 
 // HOC
 import withAuthProtection from './HOC/withAuthProtection';
@@ -27,6 +28,7 @@ import './App.css';
 
 const ProtectedDashboard = withAuthProtection('/login')(Dashboard)
 const ProtectedEditor = withAuthProtection('/login')(CreateInvoice)
+const ProtectedClientCreation = withAuthProtection('/login')(CreateClient)
 const LimitedLoginPage = afterAuthCompleted('/dashboard')(LoginPage)
 const LimitedSignUpPage = afterAuthCompleted('/dashboard')(SignupPage)
 
@@ -68,6 +70,9 @@ const App = () => {
 				)} />
 				<Route uid={globalState.signedInUserInfo.uid} exact path="/create-invoice" render={(props) => (
 					<ProtectedEditor uid={globalState.signedInUserInfo.uid}  {...props} />
+				)} />
+        <Route uid={globalState.signedInUserInfo.uid} exact path="/create-client" render={(props) => (
+					<ProtectedClientCreation uid={globalState.signedInUserInfo.uid}  {...props} />
 				)} />
 
 

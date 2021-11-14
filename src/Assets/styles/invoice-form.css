@@ -149,7 +149,7 @@ form.invoice-form .button {
 	cursor: pointer;
 }
 
-form.invoice-form input {
+form.invoice-form input:not([type='checkbox']) {
 	width: 100%;
 	appearance: none;
 	font-size: 1rem;
@@ -171,7 +171,15 @@ form.invoice-form input.input-with-label  {
 }
 
 form.invoice-form label {
+	color: inherit;
+}
+
+form.invoice-form label.error {
 	color: #ED4E58;
+}
+
+form.invoice-form label.success {
+	color: green;
 }
 
 form.invoice-form input.input-with-label:disabled {
