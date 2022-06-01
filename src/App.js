@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from 'react';
+import React, {useReducer, useEffect, useContext} from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 // Firebase
@@ -35,8 +35,23 @@ const LimitedSignUpPage = afterAuthCompleted('/dashboard')(SignupPage)
 // initialize firebase
 firebase.initializeApp(firebaseConfig);
 
-const App = () => {
+export const AppContext = React.createContext({
+	dispatch: () => null,
+	state: initState
+});
+
+export const AppContextProvider = ({children}) => {
 	const [globalState, dispatch] = useReducer(mainReducer, initState);
+	return <AppContext.Provider value={{ state: globalState, dispatch }}>
+		{children}
+	</AppContext.Provider>
+}
+
+
+
+
+const App = () => {
+	const {dispatch, state} = useContext(AppContext);
 
 	useEffect(() => {
 		firebase.auth().onAuthStateChanged(function (user) {
@@ -51,9 +66,10 @@ const App = () => {
 				dispatch({ type: actions.UPDATED_USER_SIGNED_IN, payload: false });
 			}
 		});
-	}, []);
+	}, [dispatch]);
 	
 	return (
+		// <AppContext.Provider value={{ state: globalState, dispatch }}>
 		<BrowserRouter>
 			<Switch>
 				<Route exact path="/login" render={(props) => (
@@ -65,14 +81,14 @@ const App = () => {
 				<Route exact path="/signup" render={(props) => (
 					<LimitedSignUpPage {...props} />
 				)} />
-				<Route data={globalState} exact path="/dashboard" render={(props) => (
-					<ProtectedDashboard globalState={globalState} {...props} />
+				<Route data={state} exact path="/dashboard" render={(props) => (
+					<ProtectedDashboard globalState={state} dispatch={dispatch} {...props} />
 				)} />
-				<Route uid={globalState.signedInUserInfo.uid} exact path="/create-invoice" render={(props) => (
-					<ProtectedEditor uid={globalState.signedInUserInfo.uid}  {...props} />
+				<Route uid={state.signedInUserInfo.uid} exact path="/create-invoice" render={(props) => (
+					<ProtectedEditor uid={state.signedInUserInfo.uid}  {...props} />
 				)} />
-        <Route uid={globalState.signedInUserInfo.uid} exact path="/create-client" render={(props) => (
-					<ProtectedClientCreation uid={globalState.signedInUserInfo.uid}  {...props} />
+        <Route uid={state.signedInUserInfo.uid} exact path="/create-client" render={(props) => (
+					<ProtectedClientCreation uid={state.signedInUserInfo.uid}  {...props} />
 				)} />
 
 
@@ -86,6 +102,7 @@ const App = () => {
 
 			</Switch>
 		</BrowserRouter>
+		// </AppContext.Provider>
 	);
 };
 

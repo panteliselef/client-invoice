@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, {useEffect, useState, useCallback, useContext} from 'react';
 import { NavLink, withRouter } from 'react-router-dom';
 
 // Utils
@@ -16,9 +16,13 @@ import 'firebase/storage';
 
 // CSS
 import '../Assets/styles/dashboard.css';
+import {actions} from "../Actions/mainActions";
+import {AppContext} from "../App";
 
 
-const Dashboard = ({ globalState }) => {
+const Dashboard = () => {
+
+  const {dispatch, state} = useContext(AppContext);
   const [isFetchingData, setIsFetchingData] = useState(false); // hook: for displaying loading spinner while fetching data
   const [files, setFiles] = useState([]); // hook: array of user's files
   const [filteredfiles, setFilteredFiles] = useState([]); // hook: array of user's files
@@ -27,7 +31,7 @@ const Dashboard = ({ globalState }) => {
 
   const [isDesktop, setDesktop] = useState(window.innerWidth > 800);
 
-  const [activeCategory, setActiveCatergory] = useState(categoryOptions[0])
+  // const [activeCategory, setActiveCategory] = useState(categoryOptions[0])
 
   const updateMedia = () => {
     setDesktop(window.innerWidth > 800);
@@ -76,8 +80,8 @@ const Dashboard = ({ globalState }) => {
   useEffect(
     () => {
       const database = firebase.database(); // ref: firebase.database
-      const firebaseFiles = database.ref(`/files/${(globalState) ?
-        globalState.signedInUserInfo.uid : ""}/invoices`); // ref: firebase database files path
+      const firebaseFiles = database.ref(`/files/${(state) ?
+          state.signedInUserInfo.uid : ""}/invoices`); // ref: firebase database files path
 
       setIsFetchingData(true);
       firebaseFiles.on('value', async (snapshot) => {
@@ -102,7 +106,7 @@ const Dashboard = ({ globalState }) => {
           setIsFetchingData(false);
         }
 
-        setActiveCatergory(categoryOptions[0])
+        // dispatch({type: actions.UPDATED_CATEGORY, payload: categoryOptions[0]})
       });
 
       return function cleanup() {
@@ -110,23 +114,20 @@ const Dashboard = ({ globalState }) => {
         setIsFetchingData(false);
       };
     },
-    [globalState, d]
+    [state, d, dispatch]
   );
 
   useEffect(() => {
-    console.log('dwad')
-    console.log(activeCategory, files)
+    console.log(state.activeCategory, files)
     let ff = [];
-    if (activeCategory === 'Serbian') {
-      ff = files.filter(file => file.data.invoiceCatergory === activeCategory)
+    if (state.activeCategory === 'Serbian') {
+      ff = files.filter(file => file.data.invoiceCatergory === state.activeCategory)
     } else {
-      ff = files.filter(file => file.data.invoiceCatergory === activeCategory || file.data?.invoiceCatergory == null)
+      ff = files.filter(file => file.data.invoiceCatergory === state.activeCategory || file.data?.invoiceCatergory == null)
     }
 
-
-
     setFilteredFiles(ff);
-  }, [activeCategory, files])
+  }, [state.activeCategory, files])
 
 
   return (
@@ -140,8 +141,9 @@ const Dashboard = ({ globalState }) => {
             <NavLink to="/create-invoice">
               <div className="btn-rounded dark" style={{ marginLeft: 0, minWidth: '140px' }}>New Invoice</div>
             </NavLink>
-            <select onChange={(e) => {
-              setActiveCatergory(e.target.value)
+            <select value={state.activeCategory} onChange={(e) => {
+              // setActiveCategory(e.target.value)
+              dispatch({type: actions.UPDATED_CATEGORY, payload: e.target.value})
             }}>
               {categoryOptions.map((option, index) =>
                 <option key={index} value={option}>{option}</option>
